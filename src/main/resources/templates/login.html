@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>FinanTrack · Acceso</title>
+  <style>
+    :root{--bg:#06090b;--text:#eef4f1;--muted:#8a9a93;--accent:#4ade80;--line:rgba(255,255,255,.1);--err:#f87171}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;color:var(--text);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      background:radial-gradient(1000px 650px at 85% 10%,#0c2a1d 0%,transparent 60%),
+                 radial-gradient(900px 600px at 0% 100%,#0a1b2e 0%,transparent 60%),var(--bg);
+      overflow-x:hidden;display:flex;align-items:center;justify-content:center;padding:32px 20px;
+    }
+    #scene{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+    .wrap{position:relative;z-index:1;width:100%;max-width:1040px;display:grid;grid-template-columns:1fr 420px;gap:60px;align-items:center}
+    .brand h1{font-size:clamp(2.2rem,4.4vw,3.4rem);line-height:1.08;letter-spacing:-.04em;margin-bottom:18px}
+    .brand h1 em{font-style:normal;background:linear-gradient(120deg,#4ade80,#a7f3d0);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .brand p{color:var(--muted);font-size:1.05rem;line-height:1.65;max-width:440px}
+    .logo{font-weight:700;font-size:1.15rem;letter-spacing:-.02em;margin-bottom:40px;display:block;color:var(--text);text-decoration:none}
+    .logo span{color:var(--accent)}
+
+    .card{
+      padding:32px;border-radius:24px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.02));
+      border:1px solid var(--line);box-shadow:0 30px 80px -30px rgba(0,0,0,.6);
+      animation:up .8s cubic-bezier(.2,.7,.2,1) both;
+    }
+    .switch{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:4px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line);margin-bottom:26px}
+    .ind{position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:999px;background:var(--accent);transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+    .tab{position:relative;z-index:1;background:none;border:0;color:var(--muted);font:inherit;font-weight:600;font-size:.92rem;padding:10px;cursor:pointer;transition:color .3s}
+    .tab.on{color:#04160c}
+    .tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:999px}
+
+    h2{font-size:1.4rem;letter-spacing:-.02em;margin-bottom:6px}
+    .sub{color:var(--muted);font-size:.92rem;margin-bottom:22px}
+
+    .social{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+    .btn-soc{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font:inherit;font-size:.92rem;cursor:pointer;transition:background .25s,border-color .25s}
+    .btn-soc:hover{background:rgba(255,255,255,.08);border-color:rgba(74,222,128,.35)}
+    .divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.8rem;margin:6px 0 18px}
+    .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+    label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
+    .field{margin-bottom:16px}
+    .field.reg{overflow:hidden}
+    input{
+      width:100%;padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.25);
+      color:var(--text);font:inherit;font-size:.97rem;transition:border-color .25s,box-shadow .25s;
+    }
+    input::placeholder{color:#55635d}
+    input:focus{outline:none;border-color:rgba(74,222,128,.6);box-shadow:0 0 0 4px rgba(74,222,128,.12)}
+    input[aria-invalid="true"]{border-color:var(--err)}
+    .pw{position:relative}
+    .pw button{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);font:inherit;font-size:.8rem;cursor:pointer;padding:6px}
+    .pw button:focus-visible{outline:2px solid var(--accent);border-radius:6px}
+    .meter{height:4px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:8px;overflow:hidden}
+    .meter i{display:block;height:100%;width:0;border-radius:4px;transition:width .35s,background .35s}
+    .row{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;margin:-4px 0 20px}
+    .row a{color:var(--accent);text-decoration:none}
+    .check{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--muted);margin-bottom:20px;line-height:1.5}
+    .check input{width:18px;height:18px;margin-top:2px;accent-color:#4ade80;flex-shrink:0}
+
+    .btn-main{width:100%;padding:14px;border-radius:14px;border:0;background:var(--accent);color:#04160c;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;box-shadow:0 12px 40px -12px rgba(74,222,128,.6);transition:transform .2s,background .25s}
+    .btn-main:hover{transform:translateY(-2px);background:#6ee89a}
+    .btn-main:disabled{opacity:.6;cursor:wait;transform:none}
+    .btn-main:focus-visible{outline:2px solid #fff;outline-offset:3px}
+
+    #msg{min-height:20px;font-size:.88rem;margin-top:14px;text-align:center;color:var(--muted)}
+    #msg.err{color:var(--err)}
+    #msg.ok{color:var(--accent)}
+    .trust{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.78rem;color:var(--muted);margin-top:18px}
+
+    /* Modos */
+    .reg{display:none}
+    form[data-mode="register"] .reg{display:block;animation:fade .45s ease both}
+    form[data-mode="login"] .reg{display:none}
+    form[data-mode="register"] .only-login{display:none}
+    form[data-mode="login"] .only-reg{display:none}
+
+    /* Bienvenida */
+    #welcome{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(6,9,11,.7);backdrop-filter:blur(8px);text-align:center}
+    #welcome.show{display:flex;animation:fade .5s ease both}
+    #welcome h3{font-size:1.9rem;letter-spacing:-.03em}
+    #welcome p{color:var(--muted)}
+
+    @keyframes up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+    @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @media (max-width:860px){
+      .wrap{grid-template-columns:1fr;gap:28px;max-width:440px}
+      .brand{display:none}
+    }
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition:none!important}}
+  </style>
+</head>
+<body>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<div class="wrap">
+  <section class="brand">
+    <a href="#" class="logo">Fin<span>Track</span></a>
+    <h1>Tu dinero, <em>bajo control</em></h1>
+    <p>Entra a tu cuenta o crea una nueva en un minuto. Tus movimientos, metas y disponible real te esperan.</p>
+  </section>
+
+  <section class="card">
+    <div class="switch" role="tablist" aria-label="Elige una opción">
+      <span class="ind"></span>
+      <button class="tab on" role="tab" data-mode="login" aria-selected="true">Iniciar sesión</button>
+      <button class="tab" role="tab" data-mode="register" aria-selected="false">Crear cuenta</button>
+    </div>
+
+    <h2 id="heading">Qué bueno verte de nuevo</h2>
+    <p class="sub" id="subheading">Ingresa con tu correo para ver tu disponible.</p>
+
+    <div class="social">
+      <button type="button" class="btn-soc">
+        <span style="font-weight:700">G</span> Continuar con Google
+      </button>
+      <button type="button" class="btn-soc">
+        <span style="font-weight:700"></span> Continuar con Apple
+      </button>
+    </div>
+    <div class="divider">o con tu correo</div>
+
+    <form id="form" data-mode="login" novalidate>
+      <div class="field reg">
+        <label for="name">Nombre</label>
+        <input id="name" name="name" type="text" autocomplete="given-name" placeholder="¿Cómo te llamas?">
+      </div>
+
+      <div class="field">
+        <label for="email">Correo</label>
+        <input id="email" name="email" type="email" autocomplete="email" placeholder="tu@correo.com" required>
+      </div>
+
+      <div class="field">
+        <label for="pass">Contraseña</label>
+        <div class="pw">
+          <input id="pass" name="pass" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres" required>
+          <button type="button" id="toggle" aria-label="Mostrar contraseña">Mostrar</button>
+        </div>
+        <div class="meter reg"><i id="meterBar"></i></div>
+      </div>
+
+      <div class="row only-login">
+        <label style="margin:0;display:flex;gap:8px;align-items:center;color:var(--muted)"><input type="checkbox" style="accent-color:#4ade80"> Recordarme</label>
+        <a href="#">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <label class="check reg">
+        <input type="checkbox" id="terms">
+        <span>Acepto los términos y la política de privacidad de FinanTrack.</span>
+      </label>
+
+      <button class="btn-main" id="submitBtn" type="submit">Iniciar sesión</button>
+      <p id="msg" role="status" aria-live="polite"></p>
+    </form>
+
+    <div class="trust">🔒 Tus datos están cifrados y nunca vendemos tu información</div>
+  </section>
+</div>
+
+<div id="welcome" role="dialog" aria-live="polite">
+  <h3>¡Bienvenido a FinanTrack!</h3>
+  <p>Preparando tu espacio financiero…</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<script>
+  (function(){
+    const form = document.getElementById('form');
+    const msg = document.getElementById('msg');
+    const pass = document.getElementById('pass');
+    const email = document.getElementById('email');
+    const tabs = document.querySelectorAll('.tab');
+    const ind = document.querySelector('.ind');
+    const btn = document.getElementById('submitBtn');
+    let mode = 'login';
+
+    const texts = {
+      login:{h:'Qué bueno verte de nuevo', s:'Ingresa con tu correo para ver tu disponible.', b:'Iniciar sesión', pw:'current-password'},
+      register:{h:'Empieza a tener control', s:'Crea tu cuenta en menos de un minuto.', b:'Crear cuenta', pw:'new-password'}
+    };
+
+    function setMode(m){
+      mode = m;
+      form.dataset.mode = m;
+      tabs.forEach(t => {
+        const on = t.dataset.mode === m;
+        t.classList.toggle('on', on);
+        t.setAttribute('aria-selected', on);
+      });
+      ind.style.transform = m === 'register' ? 'translateX(100%)' : 'translateX(0)';
+      document.getElementById('heading').textContent = texts[m].h;
+      document.getElementById('subheading').textContent = texts[m].s;
+      btn.textContent = texts[m].b;
+      pass.setAttribute('autocomplete', texts[m].pw);
+      msg.textContent = ''; msg.className = '';
+      form.querySelectorAll('[aria-invalid]').forEach(i => i.removeAttribute('aria-invalid'));
+    }
+    tabs.forEach(t => t.addEventListener('click', () => setMode(t.dataset.mode)));
+
+    // Mostrar / ocultar contraseña
+    document.getElementById('toggle').addEventListener('click', e => {
+      const show = pass.type === 'password';
+      pass.type = show ? 'text' : 'password';
+      e.currentTarget.textContent = show ? 'Ocultar' : 'Mostrar';
+    });
+
+    // Medidor de seguridad
+    const meter = document.getElementById('meterBar');
+    pass.addEventListener('input', () => {
+      const v = pass.value;
+      let score = 0;
+      if (v.length >= 8) score++;
+      if (v.length >= 12) score++;
+      if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+      if (/\d/.test(v) || /[^A-Za-z0-9]/.test(v)) score++;
+      const levels = [
+        {w:'0%', c:'transparent'}, {w:'25%', c:'#f87171'}, {w:'50%', c:'#fbbf24'},
+        {w:'75%', c:'#a3e635'}, {w:'100%', c:'#4ade80'}
+      ];
+      meter.style.width = levels[v ? score : 0].w;
+      meter.style.background = levels[v ? score : 0].c;
+    });
+
+    function fail(input, text){
+      msg.textContent = text;
+      msg.className = 'err';
+      if (input){ input.setAttribute('aria-invalid', 'true'); input.focus(); }
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      form.querySelectorAll('[aria-invalid]').forEach(i => i.removeAttribute('aria-invalid'));
+      msg.textContent = ''; msg.className = '';
+
+      const name = document.getElementById('name').value.trim();
+      if (mode === 'register' && !name) return fail(document.getElementById('name'), 'Escribe tu nombre para personalizar tu cuenta.');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.value.trim())) return fail(email, 'Revisa que tu correo esté bien escrito, ej: nombre@correo.com');
+      if (mode === 'register' && pass.value.length < 8) return fail(pass, 'La contraseña necesita al menos 8 caracteres.');
+      if (mode === 'login' && !pass.value) return fail(pass, 'Escribe tu contraseña para continuar.');
+      if (mode === 'register' && !document.getElementById('terms').checked) {
+        msg.textContent = 'Acepta los términos para crear tu cuenta.'; msg.className = 'err'; return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = mode === 'login' ? 'Entrando…' : 'Creando tu cuenta…';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = texts[mode].b;
+        if (mode === 'register') {
+          window.fastMode = true;
+          document.getElementById('welcome').classList.add('show');
+          setTimeout(() => {
+            document.getElementById('welcome').classList.remove('show');
+            window.fastMode = false;
+            msg.textContent = 'Cuenta lista. (Demo: aquí conectaríamos con el servidor.)';
+            msg.className = 'ok';
+          }, 2200);
+        } else {
+          msg.textContent = 'Sesión iniciada. (Demo: aquí conectaríamos con el servidor.)';
+          msg.className = 'ok';
+        }
+      }, 900);
+    });
+
+    // Escena 3D: billetes y monedas cayendo
+    const canvas = document.getElementById('scene');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const small = window.innerWidth < 860;
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x06090b, 9, 22);
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    camera.position.set(0, 0, 10);
+    function resize(){
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const key = new THREE.DirectionalLight(0xffffff, 1.1);
+    key.position.set(4, 6, 6); scene.add(key);
+    const glow = new THREE.PointLight(0x4ade80, 1.4, 22);
+    glow.position.set(-4, -2, 5); scene.add(glow);
+
+    function billTexture(){
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 256;
+      const g = c.getContext('2d');
+      const grd = g.createLinearGradient(0, 0, 512, 256);
+      grd.addColorStop(0, '#1f6b3e'); grd.addColorStop(1, '#0f3d24');
+      g.fillStyle = grd; g.fillRect(0, 0, 512, 256);
+      g.strokeStyle = 'rgba(190,255,210,.55)'; g.lineWidth = 6; g.strokeRect(14, 14, 484, 228);
+      g.beginPath(); g.arc(256, 128, 74, 0, Math.PI * 2);
+      g.strokeStyle = 'rgba(190,255,210,.5)'; g.lineWidth = 4; g.stroke();
+      g.fillStyle = 'rgba(210,255,225,.85)';
+      g.font = 'bold 110px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('$', 256, 136);
+      g.font = 'bold 34px Georgia, serif';
+      g.textAlign = 'left'; g.fillText('50', 34, 52);
+      g.textAlign = 'right'; g.fillText('50', 478, 204);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+    const billMat = new THREE.MeshStandardMaterial({map: billTexture(), side: THREE.DoubleSide, roughness: 0.55});
+    const billGeo = new THREE.PlaneGeometry(1.6, 0.8);
+    const goldMat = new THREE.MeshStandardMaterial({color:0xfcd34d, metalness:0.9, roughness:0.2});
+    const coinGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.05, 40);
+
+    const items = [];
+    function spawn(o){
+      o.position.x = (Math.random() - 0.5) * 16;
+      o.position.y = 6 + Math.random() * 8;
+      o.position.z = (Math.random() - 0.5) * 6 - 1;
+      o.userData = {
+        vy: 0.006 + Math.random() * 0.012, sway: Math.random() * Math.PI * 2,
+        amp: 0.4 + Math.random() * 0.8,
+        rx: (Math.random() - 0.5) * 0.02, ry: (Math.random() - 0.5) * 0.03, rz: (Math.random() - 0.5) * 0.015
+      };
+    }
+    for (let i = 0; i < (small ? 10 : 22); i++){
+      const b = new THREE.Mesh(billGeo, billMat);
+      b.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      spawn(b); b.position.y = Math.random() * 14 - 7;
+      scene.add(b); items.push(b);
+    }
+    for (let i = 0; i < (small ? 6 : 12); i++){
+      const c = new THREE.Mesh(coinGeo, goldMat);
+      c.rotation.set(Math.PI / 2, 0, 0);
+      spawn(c); c.position.y = Math.random() * 14 - 7;
+      scene.add(c); items.push(c);
+    }
+
+    let mx = 0, my = 0;
+    window.addEventListener('pointermove', e => {
+      mx = e.clientX / window.innerWidth - 0.5;
+      my = e.clientY / window.innerHeight - 0.5;
+    });
+
+    const base = reduce ? 0.15 : 1;
+    function animate(t){
+      requestAnimationFrame(animate);
+      const time = t * 0.001;
+      const speed = base * (window.fastMode ? 4 : 1);
+      for (const o of items){
+        const u = o.userData;
+        o.position.y -= u.vy * speed;
+        o.position.x += Math.sin(time * 0.8 + u.sway) * 0.003 * u.amp * speed;
+        o.rotation.x += u.rx * speed;
+        o.rotation.y += u.ry * speed;
+        o.rotation.z += u.rz * speed;
+        if (o.position.y < -7.5) spawn(o);
+      }
+      camera.position.x += (mx * 1.4 - camera.position.x) * 0.04;
+      camera.position.y += (-my * 1.0 - camera.position.y) * 0.04;
+      camera.lookAt(0, camera.position.y * 0.3, 0);
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(animate);
+  })();
+</script>
+</body>
+</html>

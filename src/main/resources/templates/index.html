@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>FinanTrack · Tu gestor inteligente de finanzas</title>
+  <style>
+    :root{--bg:#06090b;--text:#eef4f1;--muted:#8a9a93;--accent:#4ade80;--line:rgba(255,255,255,.08);--glass:rgba(255,255,255,.04)}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      min-height:100vh;overflow-x:hidden;color:var(--text);-webkit-font-smoothing:antialiased;
+      font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      background:radial-gradient(1200px 700px at 80% 10%,#0c2a1d 0%,transparent 60%),
+                 radial-gradient(900px 600px at 0% 100%,#0a1b2e 0%,transparent 60%),var(--bg);
+    }
+    #scene{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+    .logo{font-weight:700;font-size:1.15rem;letter-spacing:-.02em}
+    .logo span{color:var(--accent)}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:600;font-size:.92rem;text-decoration:none;cursor:pointer;font-family:inherit;border:1px solid transparent;transition:transform .3s,background .3s,box-shadow .3s,border-color .3s}
+    .btn:hover{transform:translateY(-2px)}
+    .btn:focus-visible,.skip:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+    .btn-ghost{color:var(--text);border-color:var(--line);background:var(--glass)}
+    .btn-ghost:hover{border-color:rgba(74,222,128,.4)}
+    .btn-primary{background:var(--accent);color:#04160c;box-shadow:0 10px 40px -10px rgba(74,222,128,.6)}
+    .btn-primary:hover{background:#6ee89a}
+
+    /* ---------- Intro: balanza ---------- */
+    #intro{position:fixed;inset:0;z-index:50;transition:opacity .8s ease,visibility .8s}
+    #intro.out{opacity:0;visibility:hidden}
+    .intro-top{position:absolute;top:24px;left:0;right:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:0 6vw}
+    .skip{background:none;border:1px solid rgba(255,255,255,.12);color:var(--muted);font:inherit;font-size:.85rem;padding:8px 16px;border-radius:999px;cursor:pointer;transition:color .25s,border-color .25s}
+    .skip:hover{color:var(--text);border-color:rgba(74,222,128,.4)}
+    .amount{position:absolute;left:0;right:0;bottom:12vh;z-index:2;text-align:center}
+    .amount small{display:block;letter-spacing:.22em;text-transform:uppercase;font-size:.72rem;color:var(--muted);margin-bottom:12px;opacity:0;transition:opacity .6s}
+    .amount b{display:block;font-size:clamp(2.2rem,6vw,3.6rem);letter-spacing:-.03em;font-variant-numeric:tabular-nums;opacity:0;transition:opacity .6s}
+    .amount.show small,.amount.show b{opacity:1}
+
+    /* ---------- Landing ---------- */
+    #landing{position:relative;z-index:2;opacity:0;visibility:hidden;transition:opacity 1s ease,visibility 1s}
+    #landing.show{opacity:1;visibility:visible}
+    header{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:18px 6vw;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(6,9,11,.45);border-bottom:1px solid var(--line)}
+    nav{display:flex;gap:28px}
+    nav a{color:var(--muted);text-decoration:none;font-size:.9rem;transition:color .25s}
+    nav a:hover{color:var(--text)}
+    .hero{min-height:100vh;display:flex;align-items:center;padding:140px 6vw 80px}
+    .hero-text{max-width:620px}
+    .tag{display:inline-flex;align-items:center;gap:8px;font-size:.8rem;color:var(--accent);padding:7px 14px;border-radius:999px;background:rgba(74,222,128,.14);border:1px solid rgba(74,222,128,.25);margin-bottom:26px}
+    .tag i{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+    h1{font-size:clamp(2.6rem,6vw,4.4rem);line-height:1.04;letter-spacing:-.04em;font-weight:700;margin-bottom:24px}
+    h1 em{font-style:normal}
+    h1 em .w{background:linear-gradient(120deg,#4ade80,#a7f3d0);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .lead{color:var(--muted);font-size:1.12rem;line-height:1.7;max-width:520px;margin-bottom:38px}
+    .cta{display:flex;gap:14px;flex-wrap:wrap}
+    .hint{margin-top:22px;font-size:.82rem;color:var(--muted)}
+    .reveal{opacity:0}
+    #landing.show .reveal{animation:up .9s cubic-bezier(.2,.7,.2,1) both}
+    .questions{padding:60px 6vw 110px}
+    .section-title{font-size:.8rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+    .questions h2{font-size:clamp(1.7rem,3.2vw,2.4rem);letter-spacing:-.03em;margin-bottom:44px;max-width:640px;line-height:1.2}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;perspective:1000px}
+    .card{position:relative;padding:28px;border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.015));border:1px solid var(--line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transform-style:preserve-3d;transition:transform .35s ease,border-color .35s}
+    .card:hover{border-color:rgba(74,222,128,.35)}
+    .card .n{font-size:.78rem;color:var(--accent);margin-bottom:18px;font-variant-numeric:tabular-nums}
+    .card p{font-size:1.05rem;line-height:1.45;font-weight:500;margin-bottom:12px}
+    .card small{color:var(--muted);font-size:.88rem;line-height:1.55}
+    footer{position:relative;text-align:center;padding:30px;color:var(--muted);font-size:.82rem;border-top:1px solid var(--line)}
+
+    @keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+    @media (max-width:760px){nav{display:none}.hero{align-items:flex-end;padding-bottom:50px}}
+    @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="intro-top">
+    <div class="logo">Fin<span>Track</span></div>
+    <button class="skip" id="skip">Saltar</button>
+  </div>
+  <div class="amount" id="amount">
+    <small>Tu disponible real</small>
+    <b id="total">$0</b>
+  </div>
+</div>
+
+<!-- LANDING -->
+<div id="landing">
+  <header>
+    <div class="logo">Fin<span>Track</span></div>
+    <nav>
+      <a href="#preguntas">Qué puedes saber</a>
+      <a href="#">Precios</a>
+      <a href="#">Seguridad</a>
+    </nav>
+    <a href="/api/login" class="btn btn-ghost">Iniciar sesión</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-text">
+        <span class="tag reveal" style="animation-delay:.1s"><i></i> Gestor inteligente de finanzas</span>
+        <h1 class="reveal" style="animation-delay:.2s">Sabe cuánto tienes <em><span class="w">de</span> <span class="w">verdad</span></em> para gastar</h1>
+        <p class="lead reveal" style="animation-delay:.35s">Organiza tus ingresos, entiende en qué se va tu dinero y descubre si puedes hacer una compra sin quedarte corto antes de fin de mes.</p>
+        <div class="cta reveal" style="animation-delay:.5s">
+          <a href="/api/login" class="btn btn-primary">Crear cuenta gratis →</a>
+          <a href="/api/login" class="btn btn-ghost">Iniciar sesión</a>
+        </div>
+        <p class="hint reveal" style="animation-delay:.65s">Sin tarjeta de crédito · Tus datos son tuyos</p>
+      </div>
+    </section>
+
+    <section class="questions" id="preguntas">
+      <div class="section-title">Lo que FinanTrack responde</div>
+      <h2>Cuatro preguntas que antes te costaban una hoja de cálculo</h2>
+      <div class="grid">
+        <div class="card"><div class="n">01</div><p>¿Cuánto tengo realmente disponible?</p><small>Descuenta pagos pendientes y tu meta de ahorro del saldo.</small></div>
+        <div class="card"><div class="n">02</div><p>¿En qué estoy gastando más?</p><small>Gastos por categoría, comparados con el mes anterior.</small></div>
+        <div class="card"><div class="n">03</div><p>¿Cuánto puedo ahorrar este mes?</p><small>Una cifra clara según tu ritmo actual de gasto.</small></div>
+        <div class="card"><div class="n">04</div><p>¿Puedo comprar esto sin quedarme sin dinero?</p><small>Una respuesta directa antes de que gastes.</small></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2026 FinanTrack · Privacidad · Términos</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<script>
+  (function(){
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const DURATION = 4.0;      // segundos de la intro
+    const COUNT_AT = 2.7;      // cuándo empieza a contar el disponible
+    const FINAL_AMOUNT = 1250000;
+
+    const canvas = document.getElementById('scene');
+    const intro = document.getElementById('intro');
+    const landing = document.getElementById('landing');
+    const amountEl = document.getElementById('amount');
+    const totalEl = document.getElementById('total');
+    const skipBtn = document.getElementById('skip');
+
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    function billTexture(){
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 256;
+      const g = c.getContext('2d');
+      const grd = g.createLinearGradient(0, 0, 512, 256);
+      grd.addColorStop(0, '#1f6b3e'); grd.addColorStop(1, '#0f3d24');
+      g.fillStyle = grd; g.fillRect(0, 0, 512, 256);
+      g.strokeStyle = 'rgba(190,255,210,.55)'; g.lineWidth = 6; g.strokeRect(14, 14, 484, 228);
+      g.beginPath(); g.arc(256, 128, 74, 0, Math.PI * 2);
+      g.strokeStyle = 'rgba(190,255,210,.5)'; g.lineWidth = 4; g.stroke();
+      g.fillStyle = 'rgba(210,255,225,.85)';
+      g.font = 'bold 110px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('$', 256, 136);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+    const billMat = new THREE.MeshStandardMaterial({map: billTexture(), side: THREE.DoubleSide, roughness: 0.55});
+    const billGeo = new THREE.PlaneGeometry(1.5, 0.75);
+    const goldMat = new THREE.MeshStandardMaterial({color:0xfcd34d, metalness:0.9, roughness:0.2});
+    const coinGeo = new THREE.CylinderGeometry(0.26, 0.26, 0.05, 40);
+    const metal = new THREE.MeshStandardMaterial({color:0xd1d5db, metalness:0.9, roughness:0.25});
+    const panMat = new THREE.MeshStandardMaterial({color:0x1f2a26, metalness:0.5, roughness:0.5});
+    const pivotMat = new THREE.MeshStandardMaterial({color:0x4ade80, emissive:0x14532d, metalness:0.6, roughness:0.3});
+
+    function addLights(s){
+      s.add(new THREE.AmbientLight(0xffffff, 0.6));
+      const k = new THREE.DirectionalLight(0xffffff, 1.1);
+      k.position.set(3, 6, 6); s.add(k);
+      const g = new THREE.PointLight(0x4ade80, 1.3, 22);
+      g.position.set(-3, -1, 5); s.add(g);
+    }
+
+    // ---------- Escena 1: balanza (intro) ----------
+    const introScene = new THREE.Scene();
+    addLights(introScene);
+    const introCam = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    introCam.position.set(0, 0.6, 11);
+    introCam.lookAt(0, 0, 0);
+
+    const rig = new THREE.Group();
+    rig.position.y = 0.4;
+    introScene.add(rig);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.9, 0.3, 48), metal);
+    base.position.y = -3.2; rig.add(base);
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 4.6, 24), metal);
+    post.position.y = -0.9; rig.add(post);
+
+    const beam = new THREE.Group();
+    beam.position.y = 1.5; rig.add(beam);
+    beam.add(new THREE.Mesh(new THREE.BoxGeometry(6.4, 0.12, 0.12), metal));
+    beam.add(new THREE.Mesh(new THREE.SphereGeometry(0.22, 24, 24), pivotMat));
+
+    function makePan(x){
+      const g = new THREE.Group();
+      g.position.set(x, -1.3, 0);
+      beam.add(g);
+      g.add(new THREE.Mesh(new THREE.CylinderGeometry(1.1, 0.8, 0.12, 48), panMat));
+      for (const s of [-0.9, 0.9]){
+        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.3, 6), metal);
+        rod.position.set(s, 0.65, 0); g.add(rod);
+      }
+      return g;
+    }
+    const panL = makePan(-3.2); // ingresos
+    const panR = makePan(3.2);  // gastos
+
+    const weight = {L:0, R:0};
+    const height = {L:0.06, R:0.06};
+    const falling = [];
+    const plan = [];
+    for (let i = 0; i < 6; i++) plan.push({t: 0.7 + i * 0.16, side:'L', type:'coin'});
+    for (let i = 0; i < 4; i++) plan.push({t: 1.9 + i * 0.2, side:'R', type:'bill'});
+
+    function dropWeight(ev){
+      const isCoin = ev.type === 'coin';
+      const mesh = new THREE.Mesh(isCoin ? coinGeo : billGeo, isCoin ? goldMat : billMat);
+      const pan = ev.side === 'L' ? panL : panR;
+      const thick = isCoin ? 0.05 : 0.02;
+      const targetY = height[ev.side] + thick / 2;
+      height[ev.side] += thick;
+      mesh.position.set((Math.random() - 0.5) * 0.5, 5, (Math.random() - 0.5) * 0.3);
+      if (isCoin) mesh.rotation.y = Math.random() * Math.PI;
+      else mesh.rotation.set(-Math.PI / 2, 0, (Math.random() - 0.5) * 0.4);
+      pan.add(mesh);
+      falling.push({mesh, targetY, vy:0, landed:false, side:ev.side, weight: isCoin ? 1 : 1.5});
+    }
+
+    let beamA = 0, beamV = 0;
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+    // ---------- Escena 2: billetes (landing) ----------
+    const landScene = new THREE.Scene();
+    addLights(landScene);
+    landScene.fog = new THREE.Fog(0x06090b, 9, 22);
+    const landCam = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    landCam.position.set(0, 0, 10);
+
+    const items = [];
+    function spawnFall(o){
+      o.position.x = (Math.random() - 0.5) * 16;
+      o.position.y = 6 + Math.random() * 8;
+      o.position.z = (Math.random() - 0.5) * 6 - 1;
+      o.userData = {
+        vy: 0.006 + Math.random() * 0.012, sway: Math.random() * Math.PI * 2, amp: 0.4 + Math.random() * 0.8,
+        rx: (Math.random() - 0.5) * 0.02, ry: (Math.random() - 0.5) * 0.03, rz: (Math.random() - 0.5) * 0.015
+      };
+    }
+    const small = window.innerWidth < 760;
+    for (let i = 0; i < (small ? 10 : 22); i++){
+      const b = new THREE.Mesh(billGeo, billMat);
+      b.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+      spawnFall(b); b.position.y = Math.random() * 14 - 7;
+      landScene.add(b); items.push(b);
+    }
+    for (let i = 0; i < (small ? 6 : 12); i++){
+      const c = new THREE.Mesh(coinGeo, goldMat);
+      c.rotation.set(Math.PI / 2, 0, 0);
+      spawnFall(c); c.position.y = Math.random() * 14 - 7;
+      landScene.add(c); items.push(c);
+    }
+
+    // ---------- Tamaño ----------
+    function resize(){
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setSize(w, h, false);
+      const portrait = w / h < 0.8;
+      introCam.aspect = w / h; introCam.position.z = portrait ? 15 : 11;
+      introCam.updateProjectionMatrix();
+      landCam.aspect = w / h; landCam.updateProjectionMatrix();
+      rig.scale.setScalar(portrait ? 0.62 : 1);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // ---------- Control de la intro ----------
+    let introDone = false;
+    const introT0 = performance.now();
+    const totalFmt = n => '$' + Math.round(n).toLocaleString('es-CO');
+    function finishIntro(){
+      if (introDone) return;
+      introDone = true;
+      intro.classList.add('out');
+      landing.classList.add('show');
+    }
+    skipBtn.addEventListener('click', finishIntro);
+
+    // Tarjetas que se inclinan
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('pointermove', e => {
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transform = `rotateY(${x*10}deg) rotateX(${-y*10}deg)`;
+      });
+      card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+    });
+
+    let mx = 0, my = 0;
+    window.addEventListener('pointermove', e => {
+      mx = e.clientX / window.innerWidth - 0.5;
+      my = e.clientY / window.innerHeight - 0.5;
+    });
+
+    // ---------- Bucle principal ----------
+    const speed = reduce ? 0.15 : 1;
+    function frame(now){
+      requestAnimationFrame(frame);
+
+      if (!introDone){
+        const t = (now - introT0) / 1000 * (reduce ? 3 : 1);
+
+        while (plan.length && t >= plan[0].t) dropWeight(plan.shift());
+
+        for (const it of falling){
+          if (it.landed) continue;
+          it.vy -= 0.02;
+          it.mesh.position.y += it.vy;
+          if (it.mesh.position.y <= it.targetY){
+            it.mesh.position.y = it.targetY;
+            it.vy = -it.vy * 0.25;
+            if (Math.abs(it.vy) < 0.02){
+              it.landed = true; it.vy = 0;
+              weight[it.side] += it.weight;
+            }
+          }
+        }
+
+        const target = clamp((weight.L - weight.R) * 0.06, -0.28, 0.28);
+        beamV += (target - beamA) * 0.06 - beamV * 0.12;
+        beamA += beamV;
+        beam.rotation.z = beamA;
+
+        if (t > COUNT_AT){
+          const k = Math.min(1, (t - COUNT_AT) / 0.9);
+          totalEl.textContent = totalFmt((1 - Math.pow(1 - k, 3)) * FINAL_AMOUNT);
+          amountEl.classList.add('show');
+        }
+        if (t >= DURATION) finishIntro();
+
+        renderer.render(introScene, introCam);
+      } else {
+        const time = now * 0.001;
+        for (const o of items){
+          const u = o.userData;
+          o.position.y -= u.vy * speed;
+          o.position.x += Math.sin(time * 0.8 + u.sway) * 0.003 * u.amp * speed;
+          o.rotation.x += u.rx * speed;
+          o.rotation.y += u.ry * speed;
+          o.rotation.z += u.rz * speed;
+          if (o.position.y < -7.5) spawnFall(o);
+        }
+        landCam.position.x += (mx * 1.4 - landCam.position.x) * 0.04;
+        landCam.position.y += (-my * 1.0 - landCam.position.y) * 0.04;
+        landCam.lookAt(0, landCam.position.y * 0.3, 0);
+        renderer.render(landScene, landCam);
+      }
+    }
+    requestAnimationFrame(frame);
+  })();
+</script>
+</body>
+</html>
