@@ -125,7 +125,7 @@
     </div>
     <div class="divider">o con tu correo</div>
 
-    <form id="form" data-mode="login" novalidate>
+    <form id="form" th:action="@{/api/login}" method="post" data-mode="login" novalidate>
       <div class="field reg">
         <label for="name">Nombre</label>
         <input id="name" name="name" type="text" autocomplete="given-name" placeholder="¿Cómo te llamas?">
@@ -139,7 +139,7 @@
       <div class="field">
         <label for="pass">Contraseña</label>
         <div class="pw">
-          <input id="pass" name="pass" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres" required>
+          <input id="pass" name="password" type="password" autocomplete="current-password" placeholder="Mínimo 8 caracteres" required>
           <button type="button" id="toggle" aria-label="Mostrar contraseña">Mostrar</button>
         </div>
         <div class="meter reg"><i id="meterBar"></i></div>
@@ -151,12 +151,12 @@
       </div>
 
       <label class="check reg">
-        <input type="checkbox" id="terms">
+        <input type="checkbox" id="terms" name="terms" value="true">
         <span>Acepto los términos y la política de privacidad de FinanTrack.</span>
       </label>
 
       <button class="btn-main" id="submitBtn" type="submit">Iniciar sesión</button>
-      <p id="msg" role="status" aria-live="polite"></p>
+      <p id="msg" role="status" aria-live="polite" th:text="${registerError}"></p>
     </form>
 
     <div class="trust">🔒 Tus datos están cifrados y nunca vendemos tu información</div>
@@ -180,6 +180,20 @@
     const btn = document.getElementById('submitBtn');
     let mode = 'login';
 
+    const params = new URLSearchParams(window.location.search);
+    if (msg.textContent.trim()) {
+      msg.className = 'err';
+    } else if (params.has('error')) {
+      msg.textContent = 'Correo o contraseña incorrectos.';
+      msg.className = 'err';
+    } else if (params.has('registered')) {
+      msg.textContent = 'Cuenta creada. Ya puedes iniciar sesión.';
+      msg.className = 'ok';
+    } else if (params.has('logout')) {
+      msg.textContent = 'Has cerrado sesión.';
+      msg.className = 'ok';
+    }
+
     const texts = {
       login:{h:'Qué bueno verte de nuevo', s:'Ingresa con tu correo para ver tu disponible.', b:'Iniciar sesión', pw:'current-password'},
       register:{h:'Empieza a tener control', s:'Crea tu cuenta en menos de un minuto.', b:'Crear cuenta', pw:'new-password'}
@@ -194,6 +208,7 @@
         t.setAttribute('aria-selected', on);
       });
       ind.style.transform = m === 'register' ? 'translateX(100%)' : 'translateX(0)';
+      form.action = m === 'register' ? '/api/registro' : '/api/login';
       document.getElementById('heading').textContent = texts[m].h;
       document.getElementById('subheading').textContent = texts[m].s;
       btn.textContent = texts[m].b;
@@ -234,7 +249,6 @@
     }
 
     form.addEventListener('submit', e => {
-      e.preventDefault();
       form.querySelectorAll('[aria-invalid]').forEach(i => i.removeAttribute('aria-invalid'));
       msg.textContent = ''; msg.className = '';
 
@@ -249,23 +263,6 @@
 
       btn.disabled = true;
       btn.textContent = mode === 'login' ? 'Entrando…' : 'Creando tu cuenta…';
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.textContent = texts[mode].b;
-        if (mode === 'register') {
-          window.fastMode = true;
-          document.getElementById('welcome').classList.add('show');
-          setTimeout(() => {
-            document.getElementById('welcome').classList.remove('show');
-            window.fastMode = false;
-            msg.textContent = 'Cuenta lista. (Demo: aquí conectaríamos con el servidor.)';
-            msg.className = 'ok';
-          }, 2200);
-        } else {
-          msg.textContent = 'Sesión iniciada. (Demo: aquí conectaríamos con el servidor.)';
-          msg.className = 'ok';
-        }
-      }, 900);
     });
 
     // Escena 3D: billetes y monedas cayendo
