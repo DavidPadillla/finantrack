@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinanTrack · Transacciones</title>
+  <style>
+    :root{--navy:#14243b;--page:#f4f6fa;--text:#202d40;--muted:#788497;--line:#e8ecf2;--blue:#4b79e4;--green:#21a675;--red:#df6570;--shadow:0 8px 28px rgba(22,38,61,.055)}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--page);color:var(--text);font:14px Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}
+    button,input,select{font:inherit}
+    .sidebar{position:fixed;inset:0 auto 0 0;z-index:2;display:flex;width:232px;flex-direction:column;padding:25px 17px;background:var(--navy);color:#fff}
+    .brand{display:flex;align-items:center;gap:11px;margin:0 9px 40px;font-size:18px;font-weight:750}
+    .brand-mark{display:grid;width:35px;height:35px;place-items:center;border-radius:11px;background:#21a675;font-size:18px}
+    .brand-accent{color:#73dfb5}
+    .nav-label{margin:0 12px 10px;color:#91a0b4;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+    .nav{display:grid;gap:5px}
+    .nav a,.logout{display:flex;min-height:42px;align-items:center;gap:11px;padding:0 12px;border:0;border-radius:9px;background:none;color:#bdc8d6;font-size:12px;text-align:left}
+    .nav a:hover,.logout:hover{background:rgba(255,255,255,.07);color:#fff}
+    .nav a.active{background:#263e60;color:#fff;box-shadow:inset 3px 0 #49c99a}
+    .spacer{flex:1}
+    .logout{width:100%;color:#e7afb2;cursor:pointer}
+    .main{max-width:1600px;min-height:100vh;margin-left:232px;padding:0 32px 45px}
+    .topbar{display:flex;min-height:72px;align-items:center;justify-content:space-between;gap:14px;border-bottom:1px solid var(--line);color:#687588}
+    .crumb{font-size:12px}.crumb a{color:var(--blue);font-weight:650}
+    .user{max-width:45vw;overflow:hidden;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+    .page{max-width:1280px;margin:0 auto}
+    .heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:30px 0 20px}
+    .eyebrow{margin:0 0 8px;color:var(--blue);font-size:10px;font-weight:750;letter-spacing:1px;text-transform:uppercase}
+    h1{margin:0;font-size:28px;letter-spacing:-.7px}
+    .subtitle{margin:8px 0 0;color:var(--muted);font-size:12px}
+    .button{display:inline-flex;min-height:38px;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--line);border-radius:9px;background:#fff;color:#516075;font-size:11px;font-weight:650;cursor:pointer}
+    .button.primary{border-color:var(--navy);background:var(--navy);color:#fff}
+    .flash{margin-bottom:14px;padding:11px 14px;border:1px solid #bce8d5;border-radius:10px;background:#ecf9f3;color:#187c57;font-size:12px}
+    .flash.error{border-color:#f2c8cc;background:#fff2f3;color:#ae3944}
+    .error-banner{margin-bottom:14px;padding:11px 14px;border:1px solid #f2c8cc;border-radius:10px;background:#fff2f3;color:#ae3944;font-size:12px}
+    .card{border:1px solid #edf0f5;border-radius:16px;background:#fff;box-shadow:var(--shadow)}
+    .filters{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr)) auto auto;align-items:end;gap:11px;padding:17px}
+    .field{display:grid;gap:6px}
+    label{color:#778396;font-size:10px;font-weight:650}
+    input,select{width:100%;height:38px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#334157;font-size:11px}
+    input:focus,select:focus{border-color:#9eb4ed;outline:3px solid rgba(75,121,228,.1)}
+    .filters .button{min-width:78px}
+    .list{margin-top:16px;overflow:hidden}
+    .list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:17px 19px;border-bottom:1px solid var(--line)}
+    h2{margin:0;font-size:14px}
+    .count{color:var(--muted);font-size:10px}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;text-align:left}
+    th{padding:12px 16px;background:#fbfcfd;color:#8792a2;font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;white-space:nowrap}
+    td{padding:13px 16px;border-top:1px solid #f0f2f6;color:#59667a;font-size:11px;white-space:nowrap}
+    td:first-child{color:#2c394d;font-weight:650}
+    .description{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+    .kind{display:inline-flex;align-items:center;gap:6px}
+    .kind i{width:7px;height:7px;border-radius:50%}
+    .kind.income{color:var(--green)}.kind.income i{background:var(--green)}
+    .kind.expense{color:var(--red)}.kind.expense i{background:var(--red)}
+    .amount.income{color:var(--green);font-weight:700}.amount.expense{color:#445166;font-weight:700}
+    .actions{display:flex;align-items:center;justify-content:flex-end;gap:7px}
+    .action-link{padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:white;color:#56647a;font-size:10px}
+    .delete-button{padding:6px 8px;border:1px solid #f3d6d9;border-radius:7px;background:#fff7f8;color:#c14d57;font-size:10px;cursor:pointer}
+    .empty{padding:54px 18px;color:var(--muted);text-align:center}
+    .empty strong{display:block;margin-bottom:6px;color:#47556a;font-size:13px}
+    .pager{display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:14px 18px;border-top:1px solid var(--line)}
+    .pager span{color:var(--muted);font-size:10px}
+    .pager .button{min-height:31px;padding:0 11px}
+    @media(max-width:1050px){.sidebar{width:200px}.main{margin-left:200px;padding-right:22px;padding-left:22px}.filters{grid-template-columns:repeat(2,minmax(0,1fr))}.filters .button{width:100%}}
+    @media(max-width:650px){.sidebar{position:static;width:auto;padding:12px 16px}.brand{margin:0;font-size:16px}.nav-label,.nav,.spacer,.sidebar form{display:none}.main{margin:0;padding:0 14px 30px}.topbar{min-height:50px}.heading{align-items:flex-start;flex-direction:column;padding:23px 0 17px}.heading .button{width:100%}.filters{grid-template-columns:1fr 1fr;padding:13px}.list-head{padding:14px}.table-wrap{overflow:visible}table,tbody,tr,td{display:block;width:100%}thead{display:none}tr{padding:9px 14px;border-top:1px solid var(--line)}td{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border:0;white-space:normal}td::before{color:#8a95a5;font-size:9px;font-weight:700;text-transform:uppercase}td:nth-child(1)::before{content:"Movimiento"}td:nth-child(2)::before{content:"Categoría"}td:nth-child(3)::before{content:"Fecha"}td:nth-child(4)::before{content:"Tipo"}td:nth-child(5)::before{content:"Importe"}td:nth-child(6)::before{content:"Acciones"}.description{max-width:190px;text-align:right}.actions{justify-content:flex-end}.pager{padding:12px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <a class="brand" th:href="@{/dashboard}"><span class="brand-mark">↗</span><span>Finan<span class="brand-accent">Track</span></span></a>
+  <p class="nav-label">Menú principal</p>
+  <nav class="nav" aria-label="Navegación principal">
+    <a th:href="@{/dashboard}">⌂ &nbsp; Inicio</a>
+    <a class="active" th:href="@{/transacciones}" aria-current="page">↔ &nbsp; Transacciones</a>
+    <a th:href="@{/dashboard#presupuestos}">▣ &nbsp; Presupuestos</a>
+    <a th:href="@{/dashboard#metas}">◎ &nbsp; Metas de ahorro</a>
+    <a th:href="@{/dashboard#categorias}">▦ &nbsp; Categorías</a>
+    <a th:href="@{/dashboard#reportes}">⌁ &nbsp; Reportes</a>
+  </nav>
+  <div class="spacer"></div>
+  <form th:action="@{/logout}" method="post"><button class="logout" type="submit">⇥ &nbsp; Cerrar sesión</button></form>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <span class="crumb"><a th:href="@{/dashboard}">Inicio</a> &nbsp; / &nbsp; Transacciones</span>
+    <span class="user" sec:authentication="name">Cuenta personal</span>
+  </header>
+  <div class="page">
+    <section class="heading">
+      <div><p class="eyebrow">Movimientos de tu cuenta</p><h1>Transacciones</h1><p class="subtitle">Consulta, filtra y administra tus ingresos y gastos.</p></div>
+      <a class="button primary" th:href="@{/transacciones/nueva}">＋ &nbsp; Registrar movimiento</a>
+    </section>
+    <p class="flash" th:if="${mensajeExito}" th:text="${mensajeExito}" role="status"></p>
+    <p class="flash error" th:if="${mensajeError}" th:text="${mensajeError}" role="alert"></p>
+    <p class="error-banner" th:if="${errorFiltro}" th:text="${errorFiltro}" role="alert"></p>
+    <form class="card filters" th:action="@{/transacciones}" method="get">
+      <div class="field"><label for="desde">Desde</label><input id="desde" type="date" name="desde" th:value="${desde}"></div>
+      <div class="field"><label for="hasta">Hasta</label><input id="hasta" type="date" name="hasta" th:value="${hasta}"></div>
+      <div class="field"><label for="tipo">Tipo</label>
+        <select id="tipo" name="tipo">
+          <option value="">Todos</option>
+          <option th:each="opcion : ${T(com.finantrack.finantrack.model.TipoMovimiento).values()}" th:value="${opcion}" th:text="${opcion == T(com.finantrack.finantrack.model.TipoMovimiento).INGRESO ? 'Ingreso' : 'Gasto'}" th:selected="${opcion == tipo}">Tipo</option>
+        </select>
+      </div>
+      <div class="field"><label for="categoriaId">Categoría</label>
+        <select id="categoriaId" name="categoriaId">
+          <option value="">Todas</option>
+          <option th:each="categoria : ${categorias}" th:value="${categoria.id}" th:text="${categoria.nombre}" th:selected="${categoria.id == categoriaId}">Categoría</option>
+        </select>
+      </div>
+      <button class="button primary" type="submit">Filtrar</button>
+      <a class="button" th:href="@{/transacciones}">Limpiar</a>
+    </form>
+    <section class="card list" aria-labelledby="list-title">
+      <div class="list-head"><h2 id="list-title">Movimientos</h2><span class="count" th:text="${movimientos.totalElements} + ' registros'">0 registros</span></div>
+      <div class="table-wrap" th:if="${!movimientos.isEmpty()}">
+        <table>
+          <thead><tr><th>Descripción</th><th>Categoría</th><th>Fecha</th><th>Tipo</th><th>Importe</th><th style="text-align:right">Acciones</th></tr></thead>
+          <tbody>
+            <tr th:each="movimiento : ${movimientos.content}">
+              <td><span class="description" th:text="${#strings.isEmpty(movimiento.descripcion) ? 'Movimiento' : movimiento.descripcion}">Movimiento</span></td>
+              <td th:text="${movimiento.categoria == null ? 'Sin categoría' : movimiento.categoria.nombre}">Categoría</td>
+              <td th:text="${#temporals.format(movimiento.fecha, 'dd MMM yyyy')}">Fecha</td>
+              <td><span class="kind" th:classappend="${movimiento.tipo.name() == 'INGRESO'} ? ' income' : ' expense"><i></i><span th:text="${movimiento.tipo.name() == 'INGRESO'} ? 'Ingreso' : 'Gasto'">Tipo</span></span></td>
+              <td class="amount" th:classappend="${movimiento.tipo.name() == 'INGRESO'} ? ' income' : ' expense"><span th:text="${movimiento.tipo.name() == 'INGRESO'} ? '+' : '−'">+</span><span th:text="${#numbers.formatDecimal(movimiento.monto, 1, 'POINT', 2, 'COMMA')}">0.00</span></td>
+              <td>
+                <span class="actions">
+                  <a class="action-link" th:href="@{/transacciones/{id}/editar(id=${movimiento.id})}">Editar</a>
+                  <form th:action="@{/transacciones/{id}/eliminar(id=${movimiento.id})}" method="post" onsubmit="return confirm('¿Eliminar esta transacción? Esta acción no se puede deshacer.');">
+                    <button class="delete-button" type="submit">Eliminar</button>
+                  </form>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty" th:if="${movimientos.isEmpty()}">
+        <strong th:text="${errorFiltro != null ? 'Revisa el período seleccionado' : 'No hay transacciones para mostrar'}">No hay transacciones para mostrar</strong>
+        <span th:text="${errorFiltro != null ? 'Corrige las fechas para consultar los movimientos.' : 'Registra un ingreso o gasto para verlo aquí.'}">Registra un ingreso o gasto para verlo aquí.</span>
+      </div>
+      <nav class="pager" th:if="${movimientos.totalPages > 1}" aria-label="Paginación de transacciones">
+        <a class="button" th:if="${movimientos.hasPrevious()}" th:href="@{/transacciones(desde=${desde},hasta=${hasta},tipo=${tipo},categoriaId=${categoriaId},pagina=${movimientos.number - 1})}">Anterior</a>
+        <span>Página <strong th:text="${movimientos.number + 1}">1</strong> de <strong th:text="${movimientos.totalPages}">1</strong></span>
+        <a class="button" th:if="${movimientos.hasNext()}" th:href="@{/transacciones(desde=${desde},hasta=${hasta},tipo=${tipo},categoriaId=${categoriaId},pagina=${movimientos.number + 1})}">Siguiente</a>
+      </nav>
+    </section>
+  </div>
+</main>
+</body>
+</html>

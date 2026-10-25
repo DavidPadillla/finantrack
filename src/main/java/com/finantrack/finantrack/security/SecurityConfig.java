@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .loginProcessingUrl("/api/login")
                 .usernameParameter("email")
                 .passwordParameter("password")
-                .defaultSuccessUrl("/api/dashboard", true)
+                .defaultSuccessUrl("/dashboard", true)
                 .failureUrl("/api/login?error")
                 .permitAll()
             )
