@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Presupuesto · FinanTrack</title><link rel="stylesheet" th:href="@{/css/gestion.css}"></head>
+<body><main class="shell">
+  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><a class="button" th:href="@{/presupuestos}">Volver a presupuestos</a></header>
+  <h1 class="heading" th:text="${modoEdicion} ? 'Editar presupuesto' : 'Crear presupuesto'">Presupuesto</h1><p class="subheading">Los períodos activos de una misma categoría no pueden superponerse.</p>
+  <section class="panel">
+    <form th:object="${presupuestoForm}" th:action="${modoEdicion} ? @{/presupuestos/{id}(id=${presupuestoId})} : @{/presupuestos}" method="post">
+      <div class="errors" th:if="${#fields.hasGlobalErrors() || #fields.hasErrors('*')}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p><p th:each="error : ${#fields.errors('*')}" th:text="${error}"></p></div>
+      <div class="form-grid">
+        <div class="field full"><label for="categoriaId">Categoría de gasto</label><select id="categoriaId" th:field="*{categoriaId}" required><option value="">Selecciona una categoría</option><option th:each="categoria : ${categorias}" th:value="${categoria.id}" th:text="${categoria.nombre}"></option></select><span class="field-error" th:errors="*{categoriaId}"></span><span class="muted" th:if="${#lists.isEmpty(categorias)}">Primero crea o activa una categoría de gasto.</span></div>
+        <div class="field full"><label for="montoLimite">Límite monetario</label><input id="montoLimite" th:field="*{montoLimite}" type="number" min="0.01" step="0.01" max="999999999999.99" required><span class="field-error" th:errors="*{montoLimite}"></span></div>
+        <div class="field"><label for="fechaInicio">Fecha inicial</label><input id="fechaInicio" th:field="*{fechaInicio}" type="date" required><span class="field-error" th:errors="*{fechaInicio}"></span></div>
+        <div class="field"><label for="fechaFin">Fecha final</label><input id="fechaFin" th:field="*{fechaFin}" type="date" required><span class="field-error" th:errors="*{fechaFin}"></span></div>
+      </div>
+      <div class="form-actions"><a class="button" th:href="@{/presupuestos}">Cancelar</a><button class="button primary" type="submit" th:text="${modoEdicion} ? 'Guardar cambios' : 'Crear presupuesto'">Guardar</button></div>
+    </form>
+  </section>
+</main></body></html>

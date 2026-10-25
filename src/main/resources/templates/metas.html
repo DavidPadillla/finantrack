@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FinanTrack · Metas de ahorro</title><link rel="stylesheet" th:href="@{/css/gestion.css}"></head>
+<body><main class="shell">
+  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><nav class="top-links" aria-label="Navegación"><a th:href="@{/dashboard}">Dashboard</a><a th:href="@{/categorias}">Categorías</a><a th:href="@{/presupuestos}">Presupuestos</a></nav></header>
+  <h1 class="heading">Metas de ahorro</h1><p class="subheading">Registra aportes para seguir el progreso. Al alcanzar el objetivo, la meta se marcará como completada automáticamente.</p>
+  <p class="flash" th:if="${mensajeExito}" th:text="${mensajeExito}" role="status"></p><p class="flash error" th:if="${mensajeError}" th:text="${mensajeError}" role="alert"></p>
+  <section class="panel">
+    <div class="top"><div><strong>Tus metas</strong><div class="muted">Las metas canceladas y completadas permanecen disponibles para consulta.</div></div><a class="button primary" th:href="@{/metas/nueva}">Nueva meta</a></div>
+    <div class="list" th:if="${!#lists.isEmpty(metas)}">
+      <article class="row" th:each="meta : ${metas}">
+        <div class="row-main" style="flex:1">
+          <h2 class="row-title" th:text="${meta.nombre}">Meta</h2>
+          <span class="badge purple" th:if="${meta.estado.name() == 'ACTIVA'}">Activa</span><span class="badge green" th:if="${meta.estado.name() == 'COMPLETADA'}">Completada</span><span class="badge gray" th:if="${meta.estado.name() == 'CANCELADA'}">Cancelada</span>
+          <div class="progress-label"><span th:text="${meta.porcentaje} + '% completado'">0%</span><span class="money" th:text="${#numbers.formatDecimal(meta.aportado,1,'POINT',2,'COMMA')} + ' / ' + ${#numbers.formatDecimal(meta.objetivo,1,'POINT',2,'COMMA')}">0 / 0</span></div>
+          <div class="progress purple" role="progressbar" th:attr="aria-valuenow=${meta.porcentaje},aria-valuemin=0,aria-valuemax=100,aria-label=${'Progreso de ' + meta.nombre}"><i th:style="'width:' + ${meta.porcentaje} + '%'"></i></div>
+          <p class="muted" th:text="'Restante: ' + ${#numbers.formatDecimal(meta.restante,1,'POINT',2,'COMMA')}"></p>
+          <p class="muted" th:if="${meta.fechaObjetivo != null}" th:text="'Fecha objetivo: ' + ${#temporals.format(meta.fechaObjetivo,'dd MMM yyyy')}"></p>
+        </div>
+        <div class="actions">
+          <a class="button" th:href="@{/metas/{id}(id=${meta.id})}">Ver aportes</a>
+          <a class="button" th:if="${meta.estado.name() == 'ACTIVA'}" th:href="@{/metas/{id}/editar(id=${meta.id})}">Editar</a>
+          <form th:if="${meta.estado.name() == 'ACTIVA'}" th:action="@{/metas/{id}/cancelar(id=${meta.id})}" method="post"><button class="button danger" type="submit">Cancelar</button></form>
+        </div>
+      </article>
+    </div>
+    <div class="empty" th:if="${#lists.isEmpty(metas)}"><strong>Aún no tienes metas</strong>Crea una meta y registra tus aportes para seguir su avance.</div>
+  </section>
+</main></body></html>

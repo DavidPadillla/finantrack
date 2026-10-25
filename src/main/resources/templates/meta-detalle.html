@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title th:text="${meta.nombre} + ' · FinanTrack'">Meta · FinanTrack</title><link rel="stylesheet" th:href="@{/css/gestion.css}"></head>
+<body><main class="shell">
+  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><a class="button" th:href="@{/metas}">Volver a metas</a></header>
+  <p class="flash" th:if="${mensajeExito}" th:text="${mensajeExito}" role="status"></p>
+  <h1 class="heading" th:text="${meta.nombre}">Meta</h1>
+  <p class="subheading" th:text="${meta.descripcion != null ? meta.descripcion : 'Detalle y aportes registrados para esta meta.'}"></p>
+  <section class="panel">
+    <span class="badge purple" th:if="${meta.estado.name() == 'ACTIVA'}">Activa</span><span class="badge green" th:if="${meta.estado.name() == 'COMPLETADA'}">Completada</span><span class="badge gray" th:if="${meta.estado.name() == 'CANCELADA'}">Cancelada</span>
+    <div class="progress-label"><span th:text="${meta.porcentaje} + '% completado'">0%</span><span class="money" th:text="${#numbers.formatDecimal(meta.aportado,1,'POINT',2,'COMMA')} + ' / ' + ${#numbers.formatDecimal(meta.objetivo,1,'POINT',2,'COMMA')}">0 / 0</span></div>
+    <div class="progress purple" role="progressbar" th:attr="aria-valuenow=${meta.porcentaje},aria-valuemin=0,aria-valuemax=100"><i th:style="'width:' + ${meta.porcentaje} + '%'"></i></div>
+    <p class="muted" th:text="'Importe restante: ' + ${#numbers.formatDecimal(meta.restante,1,'POINT',2,'COMMA')}"></p>
+    <p class="muted" th:if="${meta.fechaObjetivo != null}" th:text="'Fecha objetivo: ' + ${#temporals.format(meta.fechaObjetivo,'dd MMM yyyy')}"></p>
+    <form class="inline-form" th:if="${meta.estado.name() == 'ACTIVA'}" th:object="${aporteForm}" th:action="@{/metas/{id}/aportes(id=${meta.id})}" method="post">
+      <div class="errors" style="grid-column:1/-1" th:if="${#fields.hasGlobalErrors() || #fields.hasErrors('*')}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p><p th:each="error : ${#fields.errors('*')}" th:text="${error}"></p></div>
+      <div class="field"><label for="monto">Monto del aporte</label><input id="monto" th:field="*{monto}" type="number" min="0.01" step="0.01" required><span class="field-error" th:errors="*{monto}"></span></div>
+      <div class="field"><label for="fecha">Fecha</label><input id="fecha" th:field="*{fecha}" type="date" required><span class="field-error" th:errors="*{fecha}"></span></div>
+      <div class="field"><label for="descripcion">Descripción (opcional)</label><input id="descripcion" th:field="*{descripcion}" maxlength="255"><span class="field-error" th:errors="*{descripcion}"></span></div>
+      <button class="button primary" type="submit">Registrar aporte</button>
+    </form>
+    <h2 class="section-title">Historial de aportes</h2>
+    <div class="list" th:if="${!#lists.isEmpty(aportes)}"><article class="row" th:each="aporte : ${aportes}"><div class="row-main"><h3 class="row-title" th:text="${aporte.descripcion != null ? aporte.descripcion : 'Aporte'}">Aporte</h3><span class="muted" th:text="${#temporals.format(aporte.fecha,'dd MMM yyyy')}">Fecha</span></div><strong class="money" th:text="${#numbers.formatDecimal(aporte.monto,1,'POINT',2,'COMMA')}">0.00</strong></article></div>
+    <div class="empty" th:if="${#lists.isEmpty(aportes)}"><strong>Aún no hay aportes</strong>Registra el primero para comenzar.</div>
+  </section>
+</main></body></html>

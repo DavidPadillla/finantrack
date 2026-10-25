@@ -238,9 +238,9 @@
     <nav class="nav-list" aria-label="Navegación principal">
       <a class="nav-link active" href="#inicio"><svg><use href="#i-home"/></svg>Inicio</a>
       <a class="nav-link" th:href="@{/transacciones}"><svg><use href="#i-arrows"/></svg>Transacciones</a>
-      <a class="nav-link" href="#presupuestos"><svg><use href="#i-wallet"/></svg>Presupuestos</a>
-      <a class="nav-link" href="#metas"><svg><use href="#i-target"/></svg>Metas de ahorro</a>
-      <a class="nav-link" href="#categorias"><svg><use href="#i-grid"/></svg>Categorías</a>
+      <a class="nav-link" th:href="@{/presupuestos}"><svg><use href="#i-wallet"/></svg>Presupuestos</a>
+      <a class="nav-link" th:href="@{/metas}"><svg><use href="#i-target"/></svg>Metas de ahorro</a>
+      <a class="nav-link" th:href="@{/categorias}"><svg><use href="#i-grid"/></svg>Categorías</a>
       <a class="nav-link" href="#reportes"><svg><use href="#i-chart"/></svg>Reportes</a>
       <a class="nav-link" href="#configuracion"><svg><use href="#i-settings"/></svg>Configuración</a>
     </nav>
@@ -472,9 +472,7 @@
               <h2 class="section-title">Metas de ahorro</h2>
               <p class="section-subtitle">Progreso según los aportes registrados</p>
             </div>
-            <button class="button" type="button" disabled title="La creación de metas aún no está disponible">
-              <svg><use href="#i-plus"/></svg>Nueva meta
-            </button>
+            <a class="button" th:href="@{/metas/nueva}"><svg><use href="#i-plus"/></svg>Nueva meta</a>
           </div>
           <div class="goal-list" th:if="${!#lists.isEmpty(dashboard.metas)}">
             <article class="goal" th:each="goal : ${dashboard.metas}">
@@ -489,7 +487,9 @@
                 <span><strong th:text="${#numbers.formatDecimal(goal.aportado, 1, 'POINT', 2, 'COMMA')}">0.00</strong> aportado</span>
                 <span>Objetivo <strong th:text="${#numbers.formatDecimal(goal.objetivo, 1, 'POINT', 2, 'COMMA')}">0.00</strong></span>
               </div>
+              <p class="small-copy" th:text="'Restante: ' + ${#numbers.formatDecimal(goal.restante, 1, 'POINT', 2, 'COMMA')}" style="margin:8px 0 0"></p>
               <p class="small-copy" th:if="${goal.fechaObjetivo != null}" th:text="'Fecha objetivo: ' + ${#temporals.format(goal.fechaObjetivo, 'dd MMM yyyy')}" style="margin:8px 0 0"></p>
+              <a class="small-copy" th:href="@{/metas/{id}(id=${goal.id})}" style="display:inline-block;margin-top:9px">Ver aportes</a>
             </article>
           </div>
           <div class="empty" th:if="${#lists.isEmpty(dashboard.metas)}">
@@ -504,9 +504,7 @@
               <h2 class="section-title">Presupuestos activos</h2>
               <p class="section-subtitle">Gastos dentro del período de cada presupuesto</p>
             </div>
-            <button class="button" type="button" disabled title="La creación de presupuestos aún no está disponible">
-              <svg><use href="#i-plus"/></svg>Nuevo
-            </button>
+            <a class="button" th:href="@{/presupuestos/nuevo}"><svg><use href="#i-plus"/></svg>Nuevo</a>
           </div>
           <div class="budget-list" th:if="${!#lists.isEmpty(dashboard.presupuestos)}">
             <article class="budget" th:each="budget : ${dashboard.presupuestos}"
@@ -522,6 +520,7 @@
                 <span>Gastado <strong th:text="${#numbers.formatDecimal(budget.gastado, 1, 'POINT', 2, 'COMMA')}">0.00</strong></span>
                 <span>Límite <strong th:text="${#numbers.formatDecimal(budget.limite, 1, 'POINT', 2, 'COMMA')}">0.00</strong></span>
               </div>
+              <p class="small-copy" th:text="'Restante: ' + ${#numbers.formatDecimal(budget.restante, 1, 'POINT', 2, 'COMMA')}" style="margin:8px 0 0"></p>
               <p class="budget-alert" th:if="${budget.porcentaje >= 100}">Has alcanzado o superado el límite.</p>
               <p class="budget-alert" th:if="${budget.porcentaje >= 80 and budget.porcentaje < 100}">Estás cerca del límite.</p>
             </article>

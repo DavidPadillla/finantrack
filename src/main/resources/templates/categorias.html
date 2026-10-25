@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinanTrack · Categorías</title>
+  <link rel="stylesheet" th:href="@{/css/gestion.css}">
+</head>
+<body>
+<main class="shell">
+  <header class="top">
+    <a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a>
+    <nav class="top-links" aria-label="Navegación">
+      <a th:href="@{/dashboard}">Dashboard</a><a th:href="@{/transacciones}">Transacciones</a><a th:href="@{/presupuestos}">Presupuestos</a><a th:href="@{/metas}">Metas</a>
+    </nav>
+  </header>
+  <h1 class="heading">Categorías</h1>
+  <p class="subheading">Organiza tus ingresos y gastos. Las categorías generales son compartidas y no se pueden modificar.</p>
+  <p class="flash" th:if="${mensajeExito}" th:text="${mensajeExito}" role="status"></p>
+  <p class="flash error" th:if="${mensajeError}" th:text="${mensajeError}" role="alert"></p>
+  <section class="panel">
+    <div class="top">
+      <div><strong>Generales y personales</strong><div class="muted">Desactivar una categoría conserva todas las transacciones históricas.</div></div>
+      <a class="button primary" th:href="@{/categorias/nueva}">Nueva categoría</a>
+    </div>
+    <div class="list" th:if="${!#lists.isEmpty(categorias)}">
+      <article class="row" th:each="categoria : ${categorias}">
+        <div class="row-main">
+          <h2 class="row-title" th:text="${categoria.nombre}">Categoría</h2>
+          <span class="badge" th:classappend="${categoria.tipo.name() == 'INGRESO'} ? ' green' : ' red'" th:text="${categoria.tipo}">GASTO</span>
+          <span class="badge gray" th:if="${categoria.usuario == null}">General</span>
+          <span class="badge purple" th:if="${categoria.usuario != null}">Personal</span>
+          <span class="badge gray" th:if="${!categoria.activa}">Desactivada</span>
+        </div>
+        <div class="actions" th:if="${categoria.usuario != null && categoria.activa}">
+          <a class="button" th:href="@{/categorias/{id}/editar(id=${categoria.id})}">Editar</a>
+          <form th:action="@{/categorias/{id}/desactivar(id=${categoria.id})}" method="post">
+            <button class="button danger" type="submit">Desactivar</button>
+          </form>
+        </div>
+      </article>
+    </div>
+    <div class="empty" th:if="${#lists.isEmpty(categorias)}"><strong>Aún no hay categorías</strong>Las categorías existentes aparecerán aquí.</div>
+  </section>
+</main>
+</body>
+</html>

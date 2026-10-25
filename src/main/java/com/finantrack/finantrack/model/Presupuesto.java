@@ -37,6 +37,9 @@ public class Presupuesto {
     @Column(name = "fecha_fin", nullable = false)
     private LocalDate fechaFin;
 
+    @Column(name = "activo", nullable = false)
+    private Boolean activo = true;
+
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 

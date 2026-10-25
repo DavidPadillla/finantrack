@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${modoEdicion} ? 'Editar categoría · FinanTrack' : 'Nueva categoría · FinanTrack'">Categoría · FinanTrack</title>
+  <link rel="stylesheet" th:href="@{/css/gestion.css}">
+</head>
+<body>
+<main class="shell">
+  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><a class="button" th:href="@{/categorias}">Volver a categorías</a></header>
+  <h1 class="heading" th:text="${modoEdicion} ? 'Editar categoría' : 'Crear categoría'">Crear categoría</h1>
+  <p class="subheading">Las categorías que crees serán privadas de tu cuenta. No se elimina el historial al desactivarlas.</p>
+  <section class="panel">
+    <form th:object="${categoriaForm}" th:action="${modoEdicion} ? @{/categorias/{id}(id=${categoriaId})} : @{/categorias}" method="post">
+      <div class="errors" th:if="${#fields.hasGlobalErrors() || #fields.hasErrors('*')}">
+        <p th:each="error : ${#fields.globalErrors()}" th:text="${error}">Revisa los datos.</p>
+        <p th:each="error : ${#fields.errors('*')}" th:text="${error}">Revisa este campo.</p>
+      </div>
+      <div class="form-grid">
+        <div class="field full"><label for="nombre">Nombre</label><input id="nombre" th:field="*{nombre}" maxlength="80" required><span class="field-error" th:errors="*{nombre}"></span></div>
+        <div class="field"><label for="tipo">Tipo</label><select id="tipo" th:field="*{tipo}" required><option value="">Selecciona el tipo</option><option value="INGRESO">Ingreso</option><option value="GASTO">Gasto</option></select><span class="field-error" th:errors="*{tipo}"></span></div>
+        <div class="field"><label for="color">Color (opcional)</label><input id="color" th:field="*{color}" type="text" maxlength="7" placeholder="#38B889" pattern="#[0-9a-fA-F]{6}"><span class="field-error" th:errors="*{color}"></span></div>
+      </div>
+      <div class="form-actions"><a class="button" th:href="@{/categorias}">Cancelar</a><button class="button primary" type="submit" th:text="${modoEdicion} ? 'Guardar cambios' : 'Crear categoría'">Crear</button></div>
+    </form>
+  </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Meta de ahorro · FinanTrack</title><link rel="stylesheet" th:href="@{/css/gestion.css}"></head>
+<body><main class="shell">
+  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><a class="button" th:href="@{/metas}">Volver a metas</a></header>
+  <h1 class="heading" th:text="${modoEdicion} ? 'Editar meta' : 'Crear meta de ahorro'">Meta</h1><p class="subheading">El monto objetivo se compara con los aportes registrados. La fecha objetivo es opcional.</p>
+  <section class="panel">
+    <form th:object="${metaForm}" th:action="${modoEdicion} ? @{/metas/{id}(id=${metaId})} : @{/metas}" method="post">
+      <div class="errors" th:if="${#fields.hasGlobalErrors() || #fields.hasErrors('*')}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p><p th:each="error : ${#fields.errors('*')}" th:text="${error}"></p></div>
+      <div class="form-grid">
+        <div class="field full"><label for="nombre">Nombre</label><input id="nombre" th:field="*{nombre}" maxlength="120" required><span class="field-error" th:errors="*{nombre}"></span></div>
+        <div class="field full"><label for="descripcion">Descripción (opcional)</label><textarea id="descripcion" th:field="*{descripcion}" maxlength="255"></textarea><span class="field-error" th:errors="*{descripcion}"></span></div>
+        <div class="field"><label for="montoObjetivo">Monto objetivo</label><input id="montoObjetivo" th:field="*{montoObjetivo}" type="number" min="0.01" step="0.01" max="999999999999.99" required><span class="field-error" th:errors="*{montoObjetivo}"></span></div>
+        <div class="field"><label for="fechaObjetivo">Fecha objetivo (opcional)</label><input id="fechaObjetivo" th:field="*{fechaObjetivo}" type="date"><span class="field-error" th:errors="*{fechaObjetivo}"></span></div>
+      </div>
+      <div class="form-actions"><a class="button" th:href="@{/metas}">Cancelar</a><button class="button primary" type="submit" th:text="${modoEdicion} ? 'Guardar cambios' : 'Crear meta'">Guardar</button></div>
+    </form>
+  </section>
+</main></body></html>

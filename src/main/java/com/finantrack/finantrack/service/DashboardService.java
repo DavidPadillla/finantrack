@@ -209,7 +209,7 @@ public class DashboardService {
     }
 
     private List<GoalProgress> cargarMetas(Long usuarioId) {
-        List<MetaAhorro> metas = metaAhorroRepository.findByUsuario_Id(usuarioId).stream()
+        List<MetaAhorro> metas = metaAhorroRepository.findByUsuario_IdOrderByFechaCreacionDesc(usuarioId).stream()
                 .filter(meta -> meta.getEstado() == EstadoMeta.ACTIVA)
                 .toList();
         if (metas.isEmpty()) {
@@ -232,9 +232,11 @@ public class DashboardService {
                                     .intValue()
                             : 0;
                     return new GoalProgress(
+                            meta.getId(),
                             meta.getNombre(),
                             objetivo,
                             aportado,
+                            objetivo.subtract(aportado).max(ZERO),
                             porcentaje,
                             meta.getFechaObjetivo()
                     );
@@ -243,27 +245,31 @@ public class DashboardService {
     }
 
     private List<BudgetProgress> cargarPresupuestos(Long usuarioId, LocalDate hoy) {
-        return presupuestoRepository.findByUsuario_IdAndFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(
-                        usuarioId, hoy, hoy)
+        List<Presupuesto> presupuestos = presupuestoRepository
+                .findByUsuario_IdAndActivoTrueAndFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(
+                        usuarioId, hoy, hoy);
+        if (presupuestos.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, BigDecimal> gastos = new HashMap<>();
+        transaccionRepository.totalesPorPresupuesto(usuarioId)
+                .forEach(total -> gastos.put(total.getPresupuestoId(), valor(total.getTotal())));
+        return presupuestos
                 .stream()
-                .map(presupuesto -> crearProgresoPresupuesto(usuarioId, presupuesto, hoy))
+                .map(presupuesto -> crearProgresoPresupuesto(
+                        presupuesto, gastos.getOrDefault(presupuesto.getId(), ZERO)))
                 .toList();
     }
 
-    private BudgetProgress crearProgresoPresupuesto(Long usuarioId, Presupuesto presupuesto, LocalDate hoy) {
-        BigDecimal gastado = valor(transaccionRepository.totalPorCategoriaYPeriodo(
-                usuarioId,
-                presupuesto.getCategoria().getId(),
-                TipoMovimiento.GASTO,
-                presupuesto.getFechaInicio(),
-                hoy.isBefore(presupuesto.getFechaFin()) ? hoy : presupuesto.getFechaFin()
-        ));
+    private BudgetProgress crearProgresoPresupuesto(Presupuesto presupuesto, BigDecimal gastado) {
         BigDecimal limite = presupuesto.getMontoLimite();
         int porcentaje = calcularPorcentaje(gastado, limite);
         return new BudgetProgress(
+                presupuesto.getId(),
                 presupuesto.getCategoria().getNombre(),
                 limite,
                 gastado,
+                limite.subtract(gastado).max(ZERO),
                 porcentaje,
                 Math.min(porcentaje, 100),
                 presupuesto.getFechaFin()
@@ -405,17 +411,21 @@ public class DashboardService {
     }
 
     public record GoalProgress(
+            Long id,
             String nombre,
             BigDecimal objetivo,
             BigDecimal aportado,
+            BigDecimal restante,
             int porcentaje,
             LocalDate fechaObjetivo) {
     }
 
     public record BudgetProgress(
+            Long id,
             String categoria,
             BigDecimal limite,
             BigDecimal gastado,
+            BigDecimal restante,
             int porcentaje,
             int porcentajeBarra,
             LocalDate fechaFin) {

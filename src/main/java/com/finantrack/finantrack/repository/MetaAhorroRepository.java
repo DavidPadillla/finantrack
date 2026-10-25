@@ -8,10 +8,15 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MetaAhorroRepository extends JpaRepository<MetaAhorro, Long> {
     List<MetaAhorro> findByUsuario_Id(Long usuarioId);
+
+    List<MetaAhorro> findByUsuario_IdOrderByFechaCreacionDesc(Long usuarioId);
+
+    Optional<MetaAhorro> findByIdAndUsuario_Id(Long id, Long usuarioId);
 
     @Query("""
         select a.meta.id as metaId, sum(a.monto) as total

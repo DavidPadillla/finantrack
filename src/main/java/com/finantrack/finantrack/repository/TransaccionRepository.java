@@ -105,6 +105,17 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long>,
             @Param("inicio") LocalDate inicio,
             @Param("fin") LocalDate fin);
 
+    @Query(value = """
+        select p.id as presupuestoId, coalesce(sum(t.monto), 0) as total
+        from presupuestos p
+        left join transacciones t
+          on t.usuario_id = p.usuario_id and t.categoria_id = p.categoria_id
+         and t.tipo = 'GASTO' and t.fecha between p.fecha_inicio and p.fecha_fin
+        where p.usuario_id = :usuarioId
+        group by p.id
+        """, nativeQuery = true)
+    List<PresupuestoTotal> totalesPorPresupuesto(@Param("usuarioId") Long usuarioId);
+
     interface CategoriaTotal {
         String getNombre();
         BigDecimal getTotal();
@@ -115,6 +126,11 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long>,
         Integer getYear();
         Integer getMonth();
         String getTipo();
+        BigDecimal getTotal();
+    }
+
+    interface PresupuestoTotal {
+        Long getPresupuestoId();
         BigDecimal getTotal();
     }
 }

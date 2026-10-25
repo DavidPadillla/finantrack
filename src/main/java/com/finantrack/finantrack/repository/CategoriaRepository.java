@@ -8,12 +8,19 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
     List<Categoria> findByUsuario_Id(Long usuarioId);
 
-    List<Categoria> findByUsuarioIsNull();
+    List<Categoria> findByUsuario_IdOrderByNombreAsc(Long usuarioId);
+
+    List<Categoria> findByUsuarioIsNullOrderByNombreAsc();
+
+    Optional<Categoria> findByIdAndUsuario_Id(Long id, Long usuarioId);
+
+    boolean existsByUsuario_IdAndNombreIgnoreCaseAndTipo(Long usuarioId, String nombre, TipoMovimiento tipo);
 
     @Query("""
         select c from Categoria c

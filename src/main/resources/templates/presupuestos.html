@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinanTrack · Presupuestos</title><link rel="stylesheet" th:href="@{/css/gestion.css}">
+</head>
+<body><main class="shell">
+  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><nav class="top-links" aria-label="Navegación"><a th:href="@{/dashboard}">Dashboard</a><a th:href="@{/categorias}">Categorías</a><a th:href="@{/metas}">Metas</a></nav></header>
+  <h1 class="heading">Presupuestos</h1><p class="subheading">El gasto se calcula con tus transacciones de categoría GASTO dentro de las fechas de cada presupuesto. No se permiten períodos superpuestos activos para la misma categoría.</p>
+  <p class="flash" th:if="${mensajeExito}" th:text="${mensajeExito}" role="status"></p><p class="flash error" th:if="${mensajeError}" th:text="${mensajeError}" role="alert"></p>
+  <section class="panel">
+    <div class="top"><div><strong>Presupuestos y períodos</strong><div class="muted">Consulta los activos y el historial; los presupuestos desactivados conservan sus datos.</div></div><a class="button primary" th:href="@{/presupuestos/nuevo}">Nuevo presupuesto</a></div>
+    <div class="list" th:if="${!#lists.isEmpty(presupuestos)}">
+      <article class="row" th:each="p : ${presupuestos}">
+        <div class="row-main" style="flex:1">
+          <h2 class="row-title" th:text="${p.categoria}">Categoría</h2>
+          <span class="badge green" th:if="${p.activo}">Activo</span><span class="badge gray" th:unless="${p.activo}">Desactivado</span>
+          <span class="muted" th:text="${#temporals.format(p.fechaInicio, 'dd MMM yyyy')} + ' — ' + ${#temporals.format(p.fechaFin, 'dd MMM yyyy')}">Período</span>
+          <div class="progress-label"><span th:text="${p.porcentaje} + '% utilizado'">0%</span><span class="money" th:text="${#numbers.formatDecimal(p.gastado,1,'POINT',2,'COMMA')} + ' / ' + ${#numbers.formatDecimal(p.limite,1,'POINT',2,'COMMA')}">0 / 0</span></div>
+          <div class="progress" th:classappend="${p.porcentaje >= 100} ? ' over' : (${p.porcentaje >= 80} ? ' warning' : '')" role="progressbar" th:attr="aria-valuenow=${p.porcentajeBarra},aria-valuemin=0,aria-valuemax=100,aria-label=${'Uso del presupuesto de ' + p.categoria}"><i th:style="'width:' + ${p.porcentajeBarra} + '%'"></i></div>
+          <p class="muted" th:text="'Restante: ' + ${#numbers.formatDecimal(p.restante,1,'POINT',2,'COMMA')}">Restante</p>
+          <p class="muted" th:if="${p.porcentaje >= 100}">Alcanzaste o superaste el límite de este período.</p>
+          <p class="muted" th:if="${p.porcentaje >= 80 and p.porcentaje < 100}">Alerta: alcanzaste el 80 % del presupuesto.</p>
+        </div>
+        <div class="actions" th:if="${p.activo}">
+          <a class="button" th:href="@{/presupuestos/{id}/editar(id=${p.id})}">Editar</a>
+          <form th:action="@{/presupuestos/{id}/desactivar(id=${p.id})}" method="post"><button class="button danger" type="submit">Desactivar</button></form>
+        </div>
+      </article>
+    </div>
+    <div class="empty" th:if="${#lists.isEmpty(presupuestos)}"><strong>Aún no tienes presupuestos</strong>Crea un presupuesto para controlar los gastos de una categoría.</div>
+  </section>
+</main></body></html>
