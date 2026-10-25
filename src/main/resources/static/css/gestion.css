@@ -49,5 +49,47 @@ textarea{min-height:86px;resize:vertical}
 .money{font-weight:750;font-variant-numeric:tabular-nums}
 .inline-form{display:grid;grid-template-columns:repeat(3,minmax(120px,1fr)) auto;align-items:end;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
 .section-title{margin:24px 0 10px;font-size:16px}
+.report-filter{margin-bottom:16px}
+.report-form{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr)) auto;align-items:end;gap:12px}
+.report-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.report-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.report-kpi{display:grid;min-width:0;gap:8px;padding:18px}
+.report-kpi strong{font-size:18px}
+.report-money{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.report-money.income{color:var(--green)}
+.report-money.expense{color:var(--red)}
+.report-kpi.health strong{color:var(--navy)}
+.report-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:14px;margin-top:14px}
+.report-grid>.panel{min-width:0}
+.report-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.report-heading .section-title{margin:0 0 5px}
+.report-legend{display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:11px}
+.report-legend span{display:flex;align-items:center;gap:5px}
+.legend-swatch{width:9px;height:9px;border-radius:50%;background:var(--green)}
+.legend-swatch.expense{background:var(--red)}
+.monthly-chart{display:grid;height:190px;grid-template-columns:repeat(12,minmax(0,1fr));gap:7px;margin:22px 0 14px;padding:0 4px;border-bottom:1px solid var(--line)}
+.month-bars{display:flex;min-width:0;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px}
+.bar-pair{display:flex;width:100%;height:155px;align-items:flex-end;justify-content:center;gap:3px}
+.report-bar{width:min(15px,40%);min-height:2px;border-radius:5px 5px 0 0}
+.report-bar.income{background:var(--green)}
+.report-bar.expense{background:var(--red)}
+.month-label{color:var(--muted);font-size:10px;text-transform:capitalize}
+.table-wrap{width:100%;overflow-x:auto}
+.table-wrap table{width:100%;border-collapse:collapse;font-size:11px;text-align:right}
+.table-wrap th,.table-wrap td{padding:9px 7px;border-bottom:1px solid var(--line);white-space:nowrap}
+.table-wrap thead th{color:var(--muted);font-weight:650}
+.table-wrap th:first-child,.table-wrap td:first-child{text-align:left}
+.category-bars,.goal-report-list{display:grid;gap:17px;margin-top:18px}
+.category-bar-row,.goal-report{display:grid;gap:8px}
+.category-bar-copy{display:flex;justify-content:space-between;gap:12px;font-size:12px}
+.category-bar-copy strong{overflow-wrap:anywhere}
+.category-bar-copy span{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.report-insights{grid-template-columns:repeat(3,minmax(0,1fr))}
+.report-insights .section-title{margin:0 0 6px}
+.report-insights .list{margin-top:14px}
+.report-disclaimer{margin:16px 2px;color:var(--muted);font-size:11px;line-height:1.6}
+@media(max-width:920px){.report-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.report-form{grid-template-columns:repeat(2,minmax(0,1fr))}.report-insights{grid-template-columns:1fr 1fr}}
+@media(max-width:680px){.report-grid,.report-insights{grid-template-columns:1fr}.report-form{grid-template-columns:1fr 1fr}.monthly-chart{grid-template-columns:repeat(6,minmax(0,1fr));height:180px}.bar-pair{height:145px}}
+@media(max-width:390px){.report-kpis,.report-form{grid-template-columns:1fr}.report-actions{justify-content:stretch}.report-actions .button{flex:1}}
 @media(max-width:680px){body{padding:18px 12px}.top{align-items:flex-start;flex-direction:column}.top-links{width:100%}.top-links a{flex:1}.row{align-items:flex-start;flex-direction:column}.actions{width:100%}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.inline-form{grid-template-columns:1fr 1fr}.inline-form .button{grid-column:1/-1}}
 @media(max-width:390px){.inline-form{grid-template-columns:1fr}}

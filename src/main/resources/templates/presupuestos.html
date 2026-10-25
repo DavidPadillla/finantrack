@@ -5,7 +5,7 @@
   <title>FinanTrack · Presupuestos</title><link rel="stylesheet" th:href="@{/css/gestion.css}">
 </head>
 <body><main class="shell">
-  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><nav class="top-links" aria-label="Navegación"><a th:href="@{/dashboard}">Dashboard</a><a th:href="@{/categorias}">Categorías</a><a th:href="@{/metas}">Metas</a></nav></header>
+  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><nav class="top-links" aria-label="Navegación"><a th:href="@{/dashboard}">Dashboard</a><a th:href="@{/categorias}">Categorías</a><a th:href="@{/metas}">Metas</a><a th:href="@{/reportes}">Reportes</a></nav></header>
   <h1 class="heading">Presupuestos</h1><p class="subheading">El gasto se calcula con tus transacciones de categoría GASTO dentro de las fechas de cada presupuesto. No se permiten períodos superpuestos activos para la misma categoría.</p>
   <p class="flash" th:if="${mensajeExito}" th:text="${mensajeExito}" role="status"></p><p class="flash error" th:if="${mensajeError}" th:text="${mensajeError}" role="alert"></p>
   <section class="panel">

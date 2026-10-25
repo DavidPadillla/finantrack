@@ -49,9 +49,7 @@ public class TransaccionService {
             TipoMovimiento tipo,
             Long categoriaId,
             int pagina) {
-        if (desde != null && hasta != null && desde.isAfter(hasta)) {
-            throw new IllegalArgumentException("La fecha inicial no puede ser posterior a la fecha final.");
-        }
+        validarFechas(desde, hasta);
         Usuario usuario = buscarUsuario(email);
         if (categoriaId != null) {
             validarPropiedadCategoria(categoriaId, usuario);
@@ -60,24 +58,33 @@ public class TransaccionService {
                 Math.max(pagina, 0),
                 TAMANO_PAGINA,
                 Sort.by(Sort.Order.desc("fecha"), Sort.Order.desc("id")));
-        Specification<Transaccion> specification = (root, query, criteriaBuilder) -> {
-            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
-            predicates.add(criteriaBuilder.equal(root.get("usuario").get("id"), usuario.getId()));
-            if (desde != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("fecha"), desde));
-            }
-            if (hasta != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("fecha"), hasta));
-            }
-            if (tipo != null) {
-                predicates.add(criteriaBuilder.equal(root.get("tipo"), tipo));
-            }
-            if (categoriaId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("categoria").get("id"), categoriaId));
-            }
-            return criteriaBuilder.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
-        };
-        return transaccionRepository.findAll(specification, pageable);
+        return transaccionRepository.findAll(filtros(usuario, desde, hasta, tipo, categoriaId), pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TransaccionResumen> exportar(
+            String email,
+            LocalDate desde,
+            LocalDate hasta,
+            TipoMovimiento tipo,
+            Long categoriaId) {
+        validarFechas(desde, hasta);
+        Usuario usuario = buscarUsuario(email);
+        if (categoriaId != null) {
+            validarPropiedadCategoria(categoriaId, usuario);
+        }
+        return transaccionRepository.findAll(
+                filtros(usuario, desde, hasta, tipo, categoriaId),
+                Sort.by(Sort.Order.desc("fecha"), Sort.Order.desc("id")))
+                .stream()
+                .map(transaccion -> new TransaccionResumen(
+                        transaccion.getId(),
+                        transaccion.getDescripcion(),
+                        nombreCategoriaVisible(transaccion.getCategoria(), usuario),
+                        transaccion.getFecha(),
+                        transaccion.getTipo(),
+                        transaccion.getMonto()))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -204,6 +211,37 @@ public class TransaccionService {
                 .orElseThrow(() -> new IllegalArgumentException("La categoría seleccionada no existe."));
         if (!esVisiblePara(categoria, usuario)) {
             throw new IllegalArgumentException("No puedes usar una categoría de otro usuario.");
+        }
+    }
+
+    private Specification<Transaccion> filtros(
+            Usuario usuario,
+            LocalDate desde,
+            LocalDate hasta,
+            TipoMovimiento tipo,
+            Long categoriaId) {
+        return (root, query, criteriaBuilder) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            predicates.add(criteriaBuilder.equal(root.get("usuario").get("id"), usuario.getId()));
+            if (desde != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("fecha"), desde));
+            }
+            if (hasta != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("fecha"), hasta));
+            }
+            if (tipo != null) {
+                predicates.add(criteriaBuilder.equal(root.get("tipo"), tipo));
+            }
+            if (categoriaId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("categoria").get("id"), categoriaId));
+            }
+            return criteriaBuilder.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
+        };
+    }
+
+    private void validarFechas(LocalDate desde, LocalDate hasta) {
+        if (desde != null && hasta != null && desde.isAfter(hasta)) {
+            throw new IllegalArgumentException("La fecha inicial no puede ser posterior a la fecha final.");
         }
     }
 

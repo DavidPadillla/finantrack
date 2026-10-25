@@ -2,7 +2,7 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FinanTrack · Metas de ahorro</title><link rel="stylesheet" th:href="@{/css/gestion.css}"></head>
 <body><main class="shell">
-  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><nav class="top-links" aria-label="Navegación"><a th:href="@{/dashboard}">Dashboard</a><a th:href="@{/categorias}">Categorías</a><a th:href="@{/presupuestos}">Presupuestos</a></nav></header>
+  <header class="top"><a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a><nav class="top-links" aria-label="Navegación"><a th:href="@{/dashboard}">Dashboard</a><a th:href="@{/categorias}">Categorías</a><a th:href="@{/presupuestos}">Presupuestos</a><a th:href="@{/reportes}">Reportes</a></nav></header>
   <h1 class="heading">Metas de ahorro</h1><p class="subheading">Registra aportes para seguir el progreso. Al alcanzar el objetivo, la meta se marcará como completada automáticamente.</p>
   <p class="flash" th:if="${mensajeExito}" th:text="${mensajeExito}" role="status"></p><p class="flash error" th:if="${mensajeError}" th:text="${mensajeError}" role="alert"></p>
   <section class="panel">

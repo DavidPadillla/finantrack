@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FinanTrack · Reportes</title>
+  <link rel="stylesheet" th:href="@{/css/gestion.css}">
+</head>
+<body>
+<main class="shell">
+  <header class="top">
+    <a class="brand" th:href="@{/dashboard}"><span class="brand-mark">F</span><span>Finan<span class="brand-accent">Track</span></span></a>
+    <nav class="top-links" aria-label="Navegación principal">
+      <a th:href="@{/dashboard}">Dashboard</a>
+      <a th:href="@{/transacciones}">Transacciones</a>
+      <a th:href="@{/categorias}">Categorías</a>
+      <a th:href="@{/presupuestos}">Presupuestos</a>
+      <a th:href="@{/metas}">Metas</a>
+    </nav>
+  </header>
+  <h1 class="heading">Reportes financieros</h1>
+  <p class="subheading">Consulta movimientos reales de tu cuenta. La comparación usa el período inmediatamente anterior con la misma cantidad de días.</p>
+  <p class="flash error" th:if="${errorFiltro}" th:text="${errorFiltro}" role="alert"></p>
+
+  <section class="panel report-filter" aria-labelledby="filters-title">
+    <h2 class="section-title" id="filters-title">Filtrar reporte</h2>
+    <form class="report-form" method="get" th:action="@{/reportes}">
+      <div class="field">
+        <label for="desde">Desde</label>
+        <input id="desde" type="date" name="desde" th:value="${desde}" required>
+      </div>
+      <div class="field">
+        <label for="hasta">Hasta</label>
+        <input id="hasta" type="date" name="hasta" th:value="${hasta}" required>
+      </div>
+      <div class="field">
+        <label for="tipo">Tipo de movimiento</label>
+        <select id="tipo" name="tipo">
+          <option value="">Todos</option>
+          <option value="INGRESO" th:selected="${tipo != null && tipo.name() == 'INGRESO'}">Ingresos</option>
+          <option value="GASTO" th:selected="${tipo != null && tipo.name() == 'GASTO'}">Gastos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="categoriaId">Categoría</label>
+        <select id="categoriaId" name="categoriaId">
+          <option value="">Todas</option>
+          <option th:each="categoria : ${categorias}"
+                  th:value="${categoria.id}"
+                  th:selected="${categoriaId != null && categoria.id == categoriaId}"
+                  th:text="${categoria.nombre + (categoria.activa ? '' : ' (inactiva)')}">Categoría</option>
+        </select>
+      </div>
+      <button class="button primary" type="submit">Aplicar filtros</button>
+    </form>
+  </section>
+
+  <th:block th:if="${reporte != null}">
+    <div class="report-actions">
+      <a class="button" th:href="@{/reportes/exportar.csv(desde=${desde},hasta=${hasta},tipo=${tipo},categoriaId=${categoriaId})}">Descargar reporte CSV</a>
+      <a class="button" th:href="@{/reportes/exportar-transacciones.csv(desde=${desde},hasta=${hasta},tipo=${tipo},categoriaId=${categoriaId})}">Descargar transacciones CSV</a>
+    </div>
+
+    <section class="report-kpis" aria-label="Resumen del período">
+      <article class="panel report-kpi">
+        <span class="muted">Ingresos del período</span>
+        <strong class="report-money income" th:text="${#numbers.formatDecimal(reporte.ingresos,1,'POINT',2,'COMMA')}">0,00</strong>
+        <span class="muted" th:if="${reporte.comparacionIngresos != null}" th:text="${reporte.comparacionIngresos.variacionPorcentual + '% vs. período anterior'}"></span>
+        <span class="muted" th:unless="${reporte.comparacionIngresos != null}">Sin base comparable anterior</span>
+      </article>
+      <article class="panel report-kpi">
+        <span class="muted">Gastos del período</span>
+        <strong class="report-money expense" th:text="${#numbers.formatDecimal(reporte.gastos,1,'POINT',2,'COMMA')}">0,00</strong>
+        <span class="muted" th:if="${reporte.comparacionGastos != null}" th:text="${reporte.comparacionGastos.variacionPorcentual + '% vs. período anterior'}"></span>
+        <span class="muted" th:unless="${reporte.comparacionGastos != null}">Sin base comparable anterior</span>
+      </article>
+      <article class="panel report-kpi">
+        <span class="muted">Ahorro neto registrado</span>
+        <strong class="report-money" th:text="${#numbers.formatDecimal(reporte.ahorroNeto,1,'POINT',2,'COMMA')}">0,00</strong>
+        <span class="muted" th:if="${reporte.tasaAhorro != null}" th:text="${'Tasa del período: ' + reporte.tasaAhorro + '% de los ingresos'}"></span>
+        <span class="muted" th:unless="${reporte.tasaAhorro != null}">No hay ingresos para calcular una tasa</span>
+      </article>
+      <article class="panel report-kpi health">
+        <span class="muted">Flujo del período</span>
+        <strong th:text="${reporte.salud.estado}">Sin datos</strong>
+        <span class="muted" th:text="${reporte.salud.explicacion}"></span>
+      </article>
+    </section>
+
+    <section class="report-grid">
+      <article class="panel">
+        <div class="report-heading">
+          <div><h2 class="section-title">Evolución mensual</h2><p class="muted">Ingresos, gastos y ahorro neto por mes</p></div>
+          <div class="report-legend" aria-label="Leyenda"><span><i class="legend-swatch income"></i>Ingresos</span><span><i class="legend-swatch expense"></i>Gastos</span></div>
+        </div>
+        <div class="empty" th:if="${!reporte.hayMovimientos}"><strong>Sin movimientos en este período</strong>Registra transacciones para ver la evolución.</div>
+        <div class="monthly-chart" role="img" aria-label="Gráfico mensual de ingresos y gastos" th:if="${reporte.hayMovimientos}">
+          <div class="month-bars" th:each="mes : ${reporte.meses}">
+            <div class="bar-pair">
+              <span class="report-bar income" th:style="'height:' + ${mes.anchoIngresos} + '%'" th:attr="aria-label=${'Ingresos: ' + mes.ingresos}"></span>
+              <span class="report-bar expense" th:style="'height:' + ${mes.anchoGastos} + '%'" th:attr="aria-label=${'Gastos: ' + mes.gastos}"></span>
+            </div>
+            <span class="month-label" th:text="${mes.etiqueta}">Mes</span>
+          </div>
+        </div>
+        <div class="table-wrap" th:if="${reporte.hayMovimientos}">
+          <table>
+            <caption class="sr-only">Valores mensuales exactos del gráfico</caption>
+            <thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Ahorro neto</th></tr></thead>
+            <tbody><tr th:each="mes : ${reporte.meses}">
+              <th scope="row" th:text="${mes.etiqueta}">Mes</th>
+              <td th:text="${#numbers.formatDecimal(mes.ingresos,1,'POINT',2,'COMMA')}">0,00</td>
+              <td th:text="${#numbers.formatDecimal(mes.gastos,1,'POINT',2,'COMMA')}">0,00</td>
+              <td th:text="${#numbers.formatDecimal(mes.ahorroNeto,1,'POINT',2,'COMMA')}">0,00</td>
+            </tr></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="report-heading">
+          <div><h2 class="section-title">Distribución por categoría</h2><p class="muted" th:text="${tipo == null || tipo.name() == 'GASTO' ? 'Gastos del período' : 'Ingresos del período'}">Gastos del período</p></div>
+        </div>
+        <div class="empty" th:if="${#lists.isEmpty(reporte.categorias)}"><strong>Sin datos por categoría</strong>No hay movimientos categorizados que coincidan con estos filtros.</div>
+        <div class="category-bars" role="list" aria-label="Totales y porcentajes por categoría" th:if="${!#lists.isEmpty(reporte.categorias)}">
+          <div class="category-bar-row" role="listitem" th:each="categoria : ${reporte.categorias}">
+            <div class="category-bar-copy"><strong th:text="${categoria.nombre}">Categoría</strong><span th:text="${#numbers.formatDecimal(categoria.total,1,'POINT',2,'COMMA')} + ' · ' + ${categoria.porcentaje} + '%'">0 · 0%</span></div>
+            <div class="progress" role="progressbar" th:attr="aria-valuenow=${categoria.porcentaje},aria-valuemin=0,aria-valuemax=100,aria-label=${'Porcentaje de ' + categoria.nombre}">
+              <i th:style="'width:' + ${categoria.porcentaje} + '%;background:' + ${categoria.color}"></i>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="report-grid report-insights">
+      <article class="panel">
+        <h2 class="section-title">Variaciones de gasto</h2>
+        <p class="muted">Aviso cuando una categoría aumenta al menos 20 % frente al período equivalente anterior. Sin gasto previo no se calcula un porcentaje.</p>
+        <div class="empty" th:if="${#lists.isEmpty(reporte.aumentosGasto)}"><strong>Sin aumentos destacables</strong>No hay categorías con un incremento comparable de 20 % o más.</div>
+        <div class="list" th:if="${!#lists.isEmpty(reporte.aumentosGasto)}">
+          <div class="row" th:each="aumento : ${reporte.aumentosGasto}">
+            <div class="row-main"><h3 class="row-title" th:text="${aumento.nombre}">Categoría</h3><span class="muted" th:text="${#numbers.formatDecimal(aumento.anterior,1,'POINT',2,'COMMA')} + ' → ' + ${#numbers.formatDecimal(aumento.actual,1,'POINT',2,'COMMA')}">Antes → ahora</span></div>
+            <span class="badge red" th:text="'+' + ${aumento.variacionPorcentual} + '%'">+20%</span>
+          </div>
+        </div>
+      </article>
+      <article class="panel">
+        <h2 class="section-title">Presupuestos próximos al límite</h2>
+        <p class="muted">Presupuestos activos vigentes que alcanzaron el 80 % de uso.</p>
+        <div class="empty" th:if="${#lists.isEmpty(reporte.presupuestosCercanos)}"><strong>Sin alertas de presupuesto</strong>No hay presupuestos vigentes al 80 % o más.</div>
+        <div class="list" th:if="${!#lists.isEmpty(reporte.presupuestosCercanos)}">
+          <div class="row" th:each="presupuesto : ${reporte.presupuestosCercanos}">
+            <div class="row-main"><h3 class="row-title" th:text="${presupuesto.categoria}">Categoría</h3><span class="muted" th:text="${#numbers.formatDecimal(presupuesto.gastado,1,'POINT',2,'COMMA')} + ' / ' + ${#numbers.formatDecimal(presupuesto.limite,1,'POINT',2,'COMMA')}">Uso</span></div>
+            <span class="badge" th:classappend="${presupuesto.porcentaje >= 100} ? ' red' : ' gray'" th:text="${presupuesto.porcentaje} + '%'">80%</span>
+          </div>
+        </div>
+      </article>
+      <article class="panel">
+        <h2 class="section-title">Metas de ahorro</h2>
+        <p class="muted">Progreso acumulado de tus metas activas; los aportes no se suman como transacciones.</p>
+        <div class="empty" th:if="${#lists.isEmpty(reporte.metasActivas)}"><strong>Sin metas activas</strong>Crea una meta de ahorro para seguir tus aportes.</div>
+        <div class="goal-report-list" th:if="${!#lists.isEmpty(reporte.metasActivas)}">
+          <div class="goal-report" th:each="meta : ${reporte.metasActivas}">
+            <div class="category-bar-copy"><strong th:text="${meta.nombre}">Meta</strong><span th:text="${meta.porcentaje} + '%'">0%</span></div>
+            <div class="progress purple" role="progressbar" th:attr="aria-valuenow=${meta.porcentaje},aria-valuemin=0,aria-valuemax=100,aria-label=${'Progreso de la meta ' + meta.nombre}"><i th:style="'width:' + ${meta.porcentaje} + '%'"></i></div>
+            <span class="muted" th:text="${#numbers.formatDecimal(meta.aportado,1,'POINT',2,'COMMA')} + ' de ' + ${#numbers.formatDecimal(meta.objetivo,1,'POINT',2,'COMMA')}">Progreso</span>
+          </div>
+        </div>
+      </article>
+    </section>
+    <p class="report-disclaimer">Este resumen describe únicamente los movimientos registrados. El flujo positivo o negativo no incluye saldos iniciales, cuentas externas ni movimientos no registrados y no constituye asesoramiento financiero.</p>
+  </th:block>
+</main>
+</body>
+</html>

@@ -69,6 +69,28 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long>,
             @Param("inicio") LocalDate inicio,
             @Param("fin") LocalDate fin);
 
+    @Query(value = """
+        select cast(extract(year from t.fecha) as integer) as anio,
+               cast(extract(month from t.fecha) as integer) as mes,
+               t.tipo as tipo,
+               t.categoria_id as "categoriaId",
+               coalesce(c.nombre, 'Sin categoría') as "categoriaNombre",
+               c.color as color,
+               sum(t.monto) as total
+        from transacciones t
+        left join categorias c
+          on c.id = t.categoria_id
+         and (c.usuario_id is null or c.usuario_id = :usuarioId)
+        where t.usuario_id = :usuarioId and t.fecha between :desde and :hasta
+        group by extract(year from t.fecha), extract(month from t.fecha),
+                 t.tipo, t.categoria_id, c.nombre, c.color
+        order by anio, mes, "categoriaNombre"
+        """, nativeQuery = true)
+    List<ReporteAgregado> agregadosDeReporte(
+            @Param("usuarioId") Long usuarioId,
+            @Param("desde") LocalDate desde,
+            @Param("hasta") LocalDate hasta);
+
     @EntityGraph(attributePaths = "categoria")
     Page<Transaccion> findByUsuario_IdOrderByFechaDescIdDesc(Long usuarioId, Pageable pageable);
 
@@ -89,6 +111,10 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long>,
     @Override
     @EntityGraph(attributePaths = "categoria")
     Page<Transaccion> findAll(Specification<Transaccion> specification, Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = {"categoria", "categoria.usuario"})
+    List<Transaccion> findAll(Specification<Transaccion> specification, org.springframework.data.domain.Sort sort);
 
     Optional<Transaccion> findByIdAndUsuario_Id(Long id, Long usuarioId);
 
@@ -126,6 +152,16 @@ public interface TransaccionRepository extends JpaRepository<Transaccion, Long>,
         Integer getYear();
         Integer getMonth();
         String getTipo();
+        BigDecimal getTotal();
+    }
+
+    interface ReporteAgregado {
+        Integer getAnio();
+        Integer getMes();
+        String getTipo();
+        Long getCategoriaId();
+        String getCategoriaNombre();
+        String getColor();
         BigDecimal getTotal();
     }
 
